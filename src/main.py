@@ -2,6 +2,20 @@
 import functools
 import os
 
+# Workaround WSL2/WSLg: pyOpenGL tenta buscar o handle do contexto via GLX,
+# mas no WSL o GLFW costuma criar o contexto via EGL e o glXGetCurrentContext
+# devolve 0, fazendo glVertexAttribPointer falhar com "no valid context".
+# Como usamos apenas UM contexto, basta devolver um handle estável quando
+# o real falhar.
+import OpenGL.contextdata as _gl_ctxdata
+_orig_get_context = _gl_ctxdata.getContext
+def _safe_get_context(context=None):
+    try:
+        return _orig_get_context(context)
+    except Exception:
+        return 1
+_gl_ctxdata.getContext = _safe_get_context
+
 import glfw
 from OpenGL.GL import *
 
@@ -69,10 +83,14 @@ def main():
 
     # Instanciando todos os singletons
     registry = MeshRegistry()
-    camera = Camera(position=(0.0, 1.5, 5.0))
+    camera = Camera(position=(0, 0, 0))
     scene = Scene(camera=camera)
     input_mgr = InputManager()
 
+    # ---- registro de modelos vai aqui (registry.register(...) -> ObjetoGrafico/Skybox) ----
+
+    # CRÍTICO: chamar upload_to_gpu DEPOIS de todos os register(). Caso contrário
+    # os VBOs sobem vazios e nada renderiza (o parse/append acontece em CPU).
     registry.upload_to_gpu(program)
 
     # Estado mutável compartilhado entre as callbacks e o loop principal.
