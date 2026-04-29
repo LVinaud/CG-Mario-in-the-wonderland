@@ -1,6 +1,9 @@
 # Material de aula (base de referência, não faz parte da entrega)
 13-pratica/
 
+# Arquivos específicos de Sistema
+.DS_Store
+
 # Python
 __pycache__/
 *.py[cod]
