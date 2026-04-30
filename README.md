@@ -29,7 +29,7 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 |----|----|----|----|----|
 | Quadro | Interno | Nenhuma | a definir... | sim |
 | Tocha | interno | Nenhuma | a definir... | sim |
-| Toad | Interno | Translação | a definir... | não |
+| Toad | Interno | Translação | a definir... | sim |
 | Mario | Externo | Translação | a definir... | sim |
 | Estrela | Externo | Rotação | a definir... | sim |
 | Boo | Externo | Escala | a definir... | sim |
