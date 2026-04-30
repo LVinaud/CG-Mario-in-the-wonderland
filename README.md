@@ -35,7 +35,7 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 | Boo | Externo | Escala | a definir... | sim |
 | Arvores | Externo | Nenhuma | a definir... | sim |
 | Bandeiras do ICMC | Externo | Nenhuma | a definir... | não |
-| Chão externo | Externo | Nenhuma | a definir | não |
+| Chão externo | Externo | Nenhuma | a definir | sim |
 | Quarto do castelo | Interno | Nenhuma | a definir... | não |
 
 
