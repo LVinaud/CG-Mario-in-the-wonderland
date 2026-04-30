@@ -25,16 +25,16 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 - **Ambiente externo:** A praça da convergência (vulgo, praça das bandeiras) do ICMC, infestada pelos inimigos do Mario!
 - **Fluxo da apresentação:** Câmera começa no ambiente interno, o qual ela explora livremente até decidir atravessar o quadro. Nisso, o ambiente ineterno deixa de ser renderizado e ela explora o novo ambiente (limitado pela colisão com o SkyBox). Caso ela encoste na estrela, a apresentação reinicia e ela volta para o ambiente interno. 
 
-| Nome | Localização | Transformação a ser aplicada | É fonte de iluminação |
-|----|----|----|----|
-| Quadro | Interno | Nenhuma | a definir... |
-| Tocha | interno | Nenhuma | a definir... |
-| Toad | Interno | Translação | a definir... |
-| Mario | Externo | Translação | a definir... |
-| Estrela | Externo | Rotação | a definir... | 
-| Bob-omb | Externo | Escala | a definir... |
-| Arvores | Externo | Nenhuma | a definir... |
-| Bandeiras do ICMC | Externo | Nenhuma | a definir... |
+| Nome | Localização | Transformação a ser aplicada | É fonte de iluminação | Objeto já criado? |
+|----|----|----|----|----|
+| Quadro | Interno | Nenhuma | a definir... | Não |
+| Tocha | interno | Nenhuma | a definir... | sim |
+| Toad | Interno | Translação | a definir... | não |
+| Mario | Externo | Translação | a definir... | sim |
+| Estrela | Externo | Rotação | a definir... | sim |
+| Boo | Externo | Escala | a definir... | sim |
+| Arvores | Externo | Nenhuma | a definir... | sim |
+| Bandeiras do ICMC | Externo | Nenhuma | a definir... | não |
 
 
 ## Arquitetura do código
