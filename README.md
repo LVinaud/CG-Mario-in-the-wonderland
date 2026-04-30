@@ -27,7 +27,7 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 
 | Nome | Localização | Transformação a ser aplicada | É fonte de iluminação | Objeto já criado? |
 |----|----|----|----|----|
-| Quadro | Interno | Nenhuma | a definir... | Não |
+| Quadro | Interno | Nenhuma | a definir... | sim |
 | Tocha | interno | Nenhuma | a definir... | sim |
 | Toad | Interno | Translação | a definir... | não |
 | Mario | Externo | Translação | a definir... | sim |
@@ -35,6 +35,8 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 | Boo | Externo | Escala | a definir... | sim |
 | Arvores | Externo | Nenhuma | a definir... | sim |
 | Bandeiras do ICMC | Externo | Nenhuma | a definir... | não |
+| Chão externo | Externo | Nenhuma | a definir | não |
+| Quarto do castelo | Interno | Nenhuma | a definir... | não |
 
 
 ## Arquitetura do código
