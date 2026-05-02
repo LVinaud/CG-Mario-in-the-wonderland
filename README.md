@@ -22,7 +22,7 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 ## Composição da Cena
 
 - **Ambiente interno:** Um cômodo do castelo da princesa `Peach` com um quadro mágico que leva para o ambiente externo.
-- **Ambiente externo:** A praça da convergência (vulgo, praça das bandeiras) do ICMC, infestada pelos inimigos do Mario!
+- **Ambiente externo:** Uma fase do Mário personalizada e infestada pelos seus inimigos!
 - **Fluxo da apresentação:** Câmera começa no ambiente interno, o qual ela explora livremente até decidir atravessar o quadro. Nisso, o ambiente ineterno deixa de ser renderizado e ela explora o novo ambiente (limitado pela colisão com o SkyBox). Caso ela encoste na estrela, a apresentação reinicia e ela volta para o ambiente interno. 
 
 | Nome | Localização | Transformação a ser aplicada | É fonte de iluminação | Objeto já criado? |
@@ -34,9 +34,9 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 | Estrela | Externo | Rotação | a definir... | sim |
 | Boo | Externo | Escala | a definir... | sim |
 | Arvores | Externo | Nenhuma | a definir... | sim |
-| Bandeiras do ICMC | Externo | Nenhuma | a definir... | não |
+| Cano do mario | Externo | Nenhuma | a definir... | sim |
 | Chão externo | Externo | Nenhuma | a definir | sim |
-| Quarto do castelo | Interno | Nenhuma | a definir... | não |
+| Quarto do castelo | Interno | Nenhuma | a definir... | sim |
 
 
 ## Arquitetura do código
