@@ -200,14 +200,22 @@ def main():
                        "porta64/Inside_baseColor.png",
                        position=(0.0, 0.0, -4.0))
 
-    # 6 moedinhas — mesmo mesh, instâncias independentes
+    # 16 moedinhas — todas giram continuamente no loop
     coins = []
-    for i in range(6):
+    for i in range(16):
         c = _add_model(registry, scene, "coin64/coin.obj",
                        "coin64/coin.png",
                        position=(float(i) * 2.0, 1.0, -18.0),
                        rotation_axis=(0, 1, 0))
         coins.append(c)
+
+    # 15 árvores
+    trees = []
+    for i in range(15):
+        t = _add_model(registry, scene, "arvore64/arvore64.obj",
+                       "arvore64/arvore64_tex.png",
+                       position=(float(i) * 3.0, 0.0, -30.0))
+        trees.append(t)
 
     # CRÍTICO: upload_to_gpu APÓS todos os register().
     registry.upload_to_gpu(program)
@@ -236,7 +244,8 @@ def main():
         ("boo4",        boo4),
         ("boo5",        boo5),
         ("porta",       porta),
-        *[(f"coin{i+1}", coins[i]) for i in range(6)],
+        *[(f"coin{i+1}",  coins[i])  for i in range(16)],
+        *[(f"arvore{i+2}", trees[i]) for i in range(15)],
     ]
 
     # Aplica layout salvo anteriormente (se existir)
@@ -295,7 +304,7 @@ def main():
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
 
         for coin in coins:
-            coin.rotate(90.0 * state["delta_time"])  
+            coin.rotate(90.0 * state["delta_time"])
 
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
