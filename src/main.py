@@ -273,8 +273,8 @@ def main():
 
     print("[modo viz] (padrão — requisitos do trabalho)")
     print("  Setas        — translada boo")
-    print("  A / S        — rotaciona estrela")
-    print("  Q / W        — escala pipe2 em Y")
+    print("  Z / X        — rotaciona estrela")
+    print("  N / M        — escala pipe2 em Y")
     print("  T            — alterna para modo edit")
     print("[modo edit]")
     print("  TAB / SHIFT+TAB  — próximo/anterior objeto")
@@ -297,23 +297,14 @@ def main():
     def _right():
         if state["mode"] == "edit": _sel(state).translate( _T, 0, 0)
         else:                       boo.translate( _T, 0, 0)
-    def _a():
-        if state["mode"] == "viz":  estrela.rotate(-_R)
-    def _s():
-        if state["mode"] == "viz":  estrela.rotate( _R)
-    def _q():
-        if state["mode"] == "viz":  _scale_y(pipe2, 1.0 / _S)
-    def _w():
-        if state["mode"] == "viz":  _scale_y(pipe2, _S)
-
     input_mgr.on_hold(glfw.KEY_UP,        _up)
     input_mgr.on_hold(glfw.KEY_DOWN,      _down)
     input_mgr.on_hold(glfw.KEY_LEFT,      _left)
     input_mgr.on_hold(glfw.KEY_RIGHT,     _right)
-    input_mgr.on_hold(glfw.KEY_A,         _a)
-    input_mgr.on_hold(glfw.KEY_S,         _s)
-    input_mgr.on_hold(glfw.KEY_Q,         _q)
-    input_mgr.on_hold(glfw.KEY_W,         _w)
+    input_mgr.on_hold(glfw.KEY_Z,         lambda: state["mode"] == "viz" and estrela.rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_X,         lambda: state["mode"] == "viz" and estrela.rotate( _R))
+    input_mgr.on_hold(glfw.KEY_N,         lambda: state["mode"] == "viz" and _scale_y(pipe2, 1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_M,         lambda: state["mode"] == "viz" and _scale_y(pipe2, _S))
 
     # Bindings exclusivos do modo edit (teclas sem conflito com a câmera)
     input_mgr.on_hold(glfw.KEY_G,         lambda: state["mode"] == "edit" and _sel(state).translate(0, 0, -_T))
