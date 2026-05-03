@@ -255,6 +255,9 @@ def main():
         view_mat = make_view(camera.position, camera.front, camera.up)
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
 
+        for coin in coins:
+            coin.rotate(90.0 * state["delta_time"])  
+
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
 
