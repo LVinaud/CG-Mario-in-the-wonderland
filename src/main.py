@@ -25,7 +25,7 @@ WIDTH, HEIGHT = 1280, 720
 TITLE = "Mario in the Wonderland"
 
 # Passo de edição por quadro (enquanto a tecla está pressionada).
-_T = 0.05   # translação (unidades)
+_T = 0.25   # translação (unidades)
 _R = 1.0    # rotação (graus)
 _S = 1.02   # escala (fator multiplicativo)
 
