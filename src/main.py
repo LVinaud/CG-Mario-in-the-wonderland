@@ -42,7 +42,12 @@ def _scale_y(obj, factor):
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        save_layout(state["editor_objects"], camera)
+        # Só persiste se estiver em modo edit — assim a demonstração da req. 7
+        # (mover boo, rotacionar estrela, etc.) não sobrescreve o layout salvo.
+        if state["mode"] == "edit":
+            save_layout(state["editor_objects"], camera)
+        else:
+            print("[modo viz] alterações não salvas (use modo edit para salvar)")
         glfw.set_window_should_close(window, True)
         return
 
