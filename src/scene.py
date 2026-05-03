@@ -11,7 +11,7 @@ class Scene:
         self.objects.append(obj)
 
     def draw(self, shader_program):
-        # skybox primeiro: fica "atrás" no depth buffer e os objetos a sobrepõem
+        # Renderiza primeiro o skybox e depois os objetos
         if self.skybox is not None:
             self.skybox.draw(shader_program)
         for obj in self.objects:

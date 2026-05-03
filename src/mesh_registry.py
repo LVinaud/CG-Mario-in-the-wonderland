@@ -49,9 +49,7 @@ class MeshRegistry:
         texture_ids = [self._load_texture(p) for p in texture_paths]
         return MeshHandle(vertex_offset=offset, vertex_count=count, texture_ids=texture_ids)
 
-    # Texturas maiores que isso são reduzidas antes de subirem para a GPU. Algumas
-    # imagens (ex.: a do mario64, 4962×3675) estouram a alocação do driver OpenGL,
-    # mesmo em GPUs modernas. 2048px atende com folga ao detalhe que precisamos.
+    # Constante para crop de texturas estremamente grandes (observação: No fim do projeto, elas foram trocadas para versões menores)
     MAX_TEXTURE_DIM = 2048
 
     def _load_texture(self, path):
@@ -81,7 +79,7 @@ class MeshRegistry:
     def upload_to_gpu(self, shader_program):
         """Sobe vértices e UVs para a GPU. Chamar UMA vez, depois de registrar tudo."""
         if not self._vertices:
-            return  # nada registrado ainda — ok para esqueleto inicial
+            return
 
         buffers = glGenBuffers(2)
 
