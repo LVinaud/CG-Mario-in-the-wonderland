@@ -11,7 +11,9 @@ from src.graphic_object import ObjetoGrafico
 from src.input_manager import InputManager
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
+from src.scene_editor import load_layout, save_layout
 from src.shader import Shader
+from src.skybox import Skybox
 from src.transforms import make_projection, make_view
 
 
@@ -22,17 +24,39 @@ ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
 WIDTH, HEIGHT = 1280, 720
 TITLE = "Mario in the Wonderland"
 
+# Passo de edição por quadro (enquanto a tecla está pressionada).
+_T = 0.05   # translação (unidades)
+_R = 1.0    # rotação (graus)
+_S = 1.02   # escala (fator multiplicativo)
+
+
+def _sel(state):
+    """Retorna o objeto atualmente selecionado no editor."""
+    return state["editor_objects"][state["editor_idx"]][1]
+
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
+        save_layout(state["editor_objects"], camera)
         glfw.set_window_should_close(window, True)
         return
+
     if key == glfw.KEY_P and action == glfw.PRESS:
         state["polygonal_mode"] = not state["polygonal_mode"]
         return
 
+    # TAB / SHIFT+TAB — cicla objeto selecionado
+    if key == glfw.KEY_TAB and action == glfw.PRESS:
+        objs = state["editor_objects"]
+        delta = -1 if (mods & glfw.MOD_SHIFT) else 1
+        state["editor_idx"] = (state["editor_idx"] + delta) % len(objs)
+        name, _ = objs[state["editor_idx"]]
+        print(f"[editor] Selecionado: {name}  (TAB = próximo, SHIFT+TAB = anterior)")
+        return
+
     if action in (glfw.PRESS, glfw.REPEAT):
         dt = state["delta_time"]
+        # Câmera — WASD
         if key == glfw.KEY_W:
             camera.move_forward(dt)
             return
@@ -80,52 +104,58 @@ def main():
     program = shader.get_program()
 
     registry = MeshRegistry()
-    camera = Camera(position=(0.0, 2.0, 3.0))  # dentro da sala, olhando -Z
+    camera = Camera(position=(0.0, 2.0, 3.0))
     scene = Scene(camera=camera)
     input_mgr = InputManager()
 
     # ===================================================================
-    # AMBIENTE INTERNO — sala do castelo, em torno da origem.
-    # castleroom64 delimita o ambiente (não conta nos 6 da req. 2).
+    # SKYBOX (req. 8)
     # ===================================================================
-    _add_model(registry, scene, "castleroom64/castleroom64.obj",
-               "castleroom64/castleroom64_tex.png",
-               position=(0.0, 0.0, 0.0))
-
-    _add_model(registry, scene, "quadro64/quadro64.obj",
-               "quadro64/quadro64_tex.png",
-               position=(0.0, 2.0, -4.0))  # parede norte
-
-    # Duas tochas (mesmo modelo repetido — vale como 1 modelo, req. 2)
-    _add_model(registry, scene, "torch64/torch64.obj",
-               "torch64/torch64_tex.png",
-               position=(-3.0, 1.5, -4.0))
-    _add_model(registry, scene, "torch64/torch64.obj",
-               "torch64/torch64_tex.png",
-               position=(3.0, 1.5, -4.0))
-
-    _add_model(registry, scene, "toad64/toad64.obj",
-               "toad64/toad64_tex.png",
-               position=(-3.0, 0.0, 0.5))
+    skybox_h = registry.register(
+        os.path.join(ASSETS_DIR, "skybox/skybox.obj"),
+        [os.path.join(ASSETS_DIR, "skybox/skybox.png")],
+    )
+    scene.skybox = Skybox(skybox_h, scale=1.0)
 
     # ===================================================================
-    # AMBIENTE EXTERNO — z bem negativo, "do outro lado do quadro".
-    # chao64 delimita o piso externo (não conta nos 6 da req. 2).
+    # AMBIENTE INTERNO — sala do castelo
     # ===================================================================
-    _add_model(registry, scene, "chao64/chao64.obj",
-               "chao64/char64_tex.png",  # nome real do arquivo de textura
-               position=(0.0, 0.0, -20.0))
+    castleroom = _add_model(registry, scene, "castleroom64/castleroom64.obj",
+                            "castleroom64/castleroom64_tex.png",
+                            position=(0.0, 0.0, 0.0))
 
-    _add_model(registry, scene, "boo64/boo64.obj",
-               "boo64/boo64_tex.png",
-               position=(-3.0, 2.0, -18.0))
+    quadro = _add_model(registry, scene, "quadro64/quadro64.obj",
+                        "quadro64/quadro64_tex.png",
+                        position=(0.0, 2.0, -4.0))
 
-    _add_model(registry, scene, "pipe64/pipe64.obj",
-               "pipe64/pipe64_tex.png",
-               position=(5.0, 0.0, -22.0))
+    torch1 = _add_model(registry, scene, "torch64/torch64.obj",
+                        "torch64/torch64_tex.png",
+                        position=(-3.0, 1.5, -4.0))
+    torch2 = _add_model(registry, scene, "torch64/torch64.obj",
+                        "torch64/torch64_tex.png",
+                        position=(3.0, 1.5, -4.0))
+
+    toad = _add_model(registry, scene, "toad64/toad64.obj",
+                      "toad64/toad64_tex.png",
+                      position=(-3.0, 0.0, 0.5))
 
     # ===================================================================
-    # Modelos com transformação por teclado (req. 7) — um para cada.
+    # AMBIENTE EXTERNO
+    # ===================================================================
+    chao = _add_model(registry, scene, "chao64/chao64.obj",
+                      "chao64/char64_tex.png",
+                      position=(0.0, 0.0, -20.0))
+
+    boo = _add_model(registry, scene, "boo64/boo64.obj",
+                     "boo64/boo64_tex.png",
+                     position=(-3.0, 2.0, -18.0))
+
+    pipe = _add_model(registry, scene, "pipe64/pipe64.obj",
+                      "pipe64/pipe64_tex.png",
+                      position=(5.0, 0.0, -22.0))
+
+    # ===================================================================
+    # Objetos com transformação por teclado (req. 7)
     # ===================================================================
     mario = _add_model(registry, scene, "mario64/mario64.obj",
                        "mario64/mario64_textura.png",
@@ -140,35 +170,63 @@ def main():
                         "arvore64/arvore64_tex.png",
                         position=(-5.0, 0.0, -22.0))
 
-    # Bindings da req. 7 (translação, rotação, escala — uma cada):
-    input_mgr.on_hold(glfw.KEY_UP,    lambda: mario.translate(0, 0, -0.2))
-    input_mgr.on_hold(glfw.KEY_DOWN,  lambda: mario.translate(0, 0,  0.2))
-    input_mgr.on_hold(glfw.KEY_LEFT,  lambda: mario.translate(-0.2, 0, 0))
-    input_mgr.on_hold(glfw.KEY_RIGHT, lambda: mario.translate( 0.2, 0, 0))
-
-    input_mgr.on_hold(glfw.KEY_R,     lambda: estrela.rotate(2.0))         # rotação Y
-
-    input_mgr.on_hold(glfw.KEY_EQUAL, lambda: arvore.scale_by(1.05))       # tecla "="
-    input_mgr.on_hold(glfw.KEY_MINUS, lambda: arvore.scale_by(0.95))       # tecla "-"
-
-    # CRÍTICO: chamar upload_to_gpu DEPOIS de todos os register(). Caso contrário
-    # os VBOs sobem vazios e nada renderiza (o parse/append acontece em CPU).
+    # CRÍTICO: upload_to_gpu APÓS todos os register().
     registry.upload_to_gpu(program)
 
-    # Bounds da câmera — perimetra a sala + área externa, com folga.
-    camera.set_bounds((-15.0, 0.5, -30.0), (15.0, 10.0, 10.0))
+    # ===================================================================
+    # Editor de cena — lista de objetos nomeados
+    # ===================================================================
+    editor_objects = [
+        ("castleroom", castleroom),
+        ("quadro",     quadro),
+        ("torch1",     torch1),
+        ("torch2",     torch2),
+        ("toad",       toad),
+        ("chao",       chao),
+        ("boo",        boo),
+        ("pipe",       pipe),
+        ("mario",      mario),
+        ("estrela",    estrela),
+        ("arvore",     arvore),
+    ]
+
+    # Aplica layout salvo anteriormente (se existir)
+    load_layout(editor_objects, camera)
 
     state = {
         "polygonal_mode": False,
         "delta_time": 0.0,
         "last_frame": 0.0,
+        "editor_objects": editor_objects,
+        "editor_idx": 0,
     }
+
+    print("[editor] Controles:")
+    print("  TAB / SHIFT+TAB  — próximo/anterior objeto")
+    print("  Setas            — translada X/Z")
+    print("  Page Up/Down     — translada Y")
+    print("  R / F            — rotaciona ±1°")
+    print("  = / -            — escala")
+    print("  ESC              — salva layout e fecha")
+
+    # Bindings do editor — operam sobre o objeto selecionado dinamicamente
+    input_mgr.on_hold(glfw.KEY_UP,        lambda: _sel(state).translate(0,  _T, 0))
+    input_mgr.on_hold(glfw.KEY_DOWN,      lambda: _sel(state).translate(0, -_T, 0))
+    input_mgr.on_hold(glfw.KEY_LEFT,      lambda: _sel(state).translate(-_T, 0, 0))
+    input_mgr.on_hold(glfw.KEY_RIGHT,     lambda: _sel(state).translate( _T, 0, 0))
+    input_mgr.on_hold(glfw.KEY_G,   lambda: _sel(state).translate(0, 0, -_T))
+    input_mgr.on_hold(glfw.KEY_H, lambda: _sel(state).translate(0, 0,  _T))
+    input_mgr.on_hold(glfw.KEY_R,         lambda: _sel(state).rotate( _R))
+    input_mgr.on_hold(glfw.KEY_F,         lambda: _sel(state).rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: _sel(state).scale_by(_S))
+    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: _sel(state).scale_by(1.0 / _S))
+
+    camera.set_bounds((-100, 0.5, -100), (100, 100, 100))
 
     glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, state))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
-    # Captura o cursor — mesmo padrão FPS do notebook do professor (Aula 13).
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     glfw.show_window(window)
 
