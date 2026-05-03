@@ -41,4 +41,17 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 
 ## Arquitetura do código
 
+Durante o desenvolvimento, optamos por priorizar abstrações que facilitassem a instanciação de diferentes objetos gráficos e alcançassem um nível de modularização que facilitasse a legibilidade do código. Dessa forma, utilizamos orientação a objetos para encapsular cada comportamento do código em classes bem definidas, sendo elas:
+
+<!-- Falta anotar uma breve descrição de cada modulo... -->
+
 ## Como rodar
+
+Certifique-se de que o computador possui python3 instalado (de preferência na versão 3.14)
+
+1. Entre em `src/` com `cd src/`
+2. crie um ambiente virtual Python com `python3 -m venv .venv`
+3. Ative o ambiente como `source .venv/bin/activate`
+4. Instale as dependências com `pip install glfw PyOpenGL PyGLM Pillow numpy`
+5. saia de `src` com `cd ../`
+6. Rode todo o programa com: `python3 -m src.main`
