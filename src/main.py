@@ -37,7 +37,7 @@ def _sel(state):
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        save_layout(state["editor_objects"])
+        save_layout(state["editor_objects"], camera)
         glfw.set_window_should_close(window, True)
         return
 
@@ -191,7 +191,7 @@ def main():
     ]
 
     # Aplica layout salvo anteriormente (se existir)
-    load_layout(editor_objects)
+    load_layout(editor_objects, camera)
 
     state = {
         "polygonal_mode": False,
