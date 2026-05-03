@@ -176,18 +176,46 @@ def main():
                         "arvore64/arvore64_tex.png",
                         position=(-5.0, 0.0, -22.0))
 
+    plataforma1 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
+                             "plataforma64/plataforma64_tex.png",
+                             position=(3.0, 0.0, -20.0))
+    plataforma2 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
+                             "plataforma64/plataforma64_tex.png",
+                             position=(-3.0, 0.0, -20.0))
+
+    boo2 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(3.0, 2.0, -20.0))
+    boo3 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(-3.0, 2.0, -20.0))
+    boo4 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(0.0, 2.0, -25.0))
+    boo5 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(5.0, 2.0, -25.0))
+
     porta = _add_model(registry, scene, "porta64/porta64.obj",
                        "porta64/Inside_baseColor.png",
                        position=(0.0, 0.0, -4.0))
 
-    # 6 moedinhas — mesmo mesh, instâncias independentes
+    # 16 moedinhas — todas giram continuamente no loop
     coins = []
-    for i in range(6):
+    for i in range(16):
         c = _add_model(registry, scene, "coin64/coin.obj",
                        "coin64/coin.png",
                        position=(float(i) * 2.0, 1.0, -18.0),
                        rotation_axis=(0, 1, 0))
         coins.append(c)
+
+    # 15 árvores
+    trees = []
+    for i in range(15):
+        t = _add_model(registry, scene, "arvore64/arvore64.obj",
+                       "arvore64/arvore64_tex.png",
+                       position=(float(i) * 3.0, 0.0, -30.0))
+        trees.append(t)
 
     # CRÍTICO: upload_to_gpu APÓS todos os register().
     registry.upload_to_gpu(program)
@@ -209,8 +237,15 @@ def main():
         ("mario",      mario),
         ("estrela",    estrela),
         ("arvore",     arvore),
-        ("porta",      porta),
-        *[(f"coin{i+1}", coins[i]) for i in range(6)],
+        ("plataforma1", plataforma1),
+        ("plataforma2", plataforma2),
+        ("boo2",        boo2),
+        ("boo3",        boo3),
+        ("boo4",        boo4),
+        ("boo5",        boo5),
+        ("porta",       porta),
+        *[(f"coin{i+1}",  coins[i])  for i in range(16)],
+        *[(f"arvore{i+2}", trees[i]) for i in range(15)],
     ]
 
     # Aplica layout salvo anteriormente (se existir)
@@ -269,7 +304,7 @@ def main():
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
 
         for coin in coins:
-            coin.rotate(90.0 * state["delta_time"])  
+            coin.rotate(90.0 * state["delta_time"])
 
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
