@@ -34,6 +34,7 @@ class MeshRegistry:
     def register(self, obj_path, texture_paths):
         """Registra um modelo. Retorna um MeshHandle que o ObjetoGrafico vai guardar."""
         model = parse_obj(obj_path)
+        print('Processando modelo {}. Vertice inicial: {}'.format(obj_path, len(self._vertices)))
 
         offset = len(self._vertices)
         for face in model["faces"]:
@@ -43,12 +44,15 @@ class MeshRegistry:
                 self._tex_coords.append(model["texture"][tid - 1])
         count = len(self._vertices) - offset
 
+        print('Processando modelo {}. Vertice final: {}'.format(obj_path, len(self._vertices)))
+
         texture_ids = [self._load_texture(p) for p in texture_paths]
         return MeshHandle(vertex_offset=offset, vertex_count=count, texture_ids=texture_ids)
 
     def _load_texture(self, path):
-        """Carrega imagem para a GPU. Usa contador incremental como id (padrão da aula)."""
+        """Carrega imagem para a GPU — mesmo fluxo de load_texture_from_file da Aula 13."""
         tid = self._num_textures
+        print(tid)
         glBindTexture(GL_TEXTURE_2D, tid)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)

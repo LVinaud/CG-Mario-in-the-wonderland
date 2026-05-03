@@ -1,14 +1,12 @@
-"""Câmera em primeira pessoa com clamping dentro de um AABB (req. 9)."""
+"""Câmera em primeira pessoa, padrão idêntico ao da Aula 13 do professor.
+
+Sem cache de `right`, sem `_update_camera_vectors`: o vetor up é constante
+(0, 1, 0); o `right` é recomputado on-the-fly no strafe via `cross(front, up)`.
+"""
 import glm
 
 
 class Camera:
-    """Câmera estilo FPS — WASD + mouse.
-
-    Os limites (bounds_min/bounds_max) são definidos a partir do tamanho do
-    skybox para impedir que o jogador "saia" do mundo (req. 9).
-    """
-
     def __init__(self, position, front=(0.0, 0.0, -1.0), up=(0.0, 1.0, 0.0)):
         self.position = glm.vec3(*position)
         self.front = glm.vec3(*front)
@@ -18,13 +16,15 @@ class Camera:
         self.pitch = 0.0
         self.fov = 45.0
 
+        # Mesmos valores do notebook do professor.
         self.speed = 50.0
         self.sensitivity = 0.1
 
         self.bounds_min = None
         self.bounds_max = None
 
-        # Estado para calcular deltas de mouse — o primeiro evento define o "zero"
+        # firstMouse / lastX / lastY — mesma nomenclatura usada pelo prof
+        # no notebook da Aula 13.
         self._first_mouse = True
         self._last_x = 0.0
         self._last_y = 0.0
@@ -57,18 +57,27 @@ class Camera:
         self._clamp()
 
     def process_mouse(self, xpos, ypos):
+        """Mesma lógica do mouse_callback do notebook do prof (Aula 13)."""
         if self._first_mouse:
             self._last_x = xpos
             self._last_y = ypos
             self._first_mouse = False
+
         xoffset = xpos - self._last_x
-        yoffset = self._last_y - ypos  # Y invertido: tela cresce p/ baixo
+        yoffset = self._last_y - ypos
         self._last_x = xpos
         self._last_y = ypos
 
-        self.yaw += xoffset * self.sensitivity
-        self.pitch += yoffset * self.sensitivity
-        self.pitch = max(-89.0, min(89.0, self.pitch))
+        xoffset *= self.sensitivity
+        yoffset *= self.sensitivity
+
+        self.yaw += xoffset
+        self.pitch += yoffset
+
+        if self.pitch > 89.0:
+            self.pitch = 89.0
+        if self.pitch < -89.0:
+            self.pitch = -89.0
 
         front = glm.vec3()
         front.x = glm.cos(glm.radians(self.yaw)) * glm.cos(glm.radians(self.pitch))
