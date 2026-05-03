@@ -92,7 +92,7 @@ def main():
         os.path.join(ASSETS_DIR, "skybox/skybox.obj"),
         [os.path.join(ASSETS_DIR, "skybox/skybox.png")],
     )
-    scene.skybox = Skybox(skybox_h, scale=50000.0)
+    scene.skybox = Skybox(skybox_h, scale=1.0)
 
     # ===================================================================
     # AMBIENTE INTERNO — sala do castelo, em torno da origem.
