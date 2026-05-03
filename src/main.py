@@ -158,7 +158,7 @@ def main():
     # Objetos com transformação por teclado (req. 7)
     # ===================================================================
     mario = _add_model(registry, scene, "mario64/mario64.obj",
-                       "mario64/mario64_textura.png",
+                       "mario64/mario64_tex.png",
                        position=(0.0, 0.0, -15.0))
 
     estrela = _add_model(registry, scene, "estrela/estrela.obj",
