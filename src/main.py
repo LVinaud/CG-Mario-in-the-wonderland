@@ -176,6 +176,26 @@ def main():
                         "arvore64/arvore64_tex.png",
                         position=(-5.0, 0.0, -22.0))
 
+    plataforma1 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
+                             "plataforma64/plataforma64_tex.png",
+                             position=(3.0, 0.0, -20.0))
+    plataforma2 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
+                             "plataforma64/plataforma64_tex.png",
+                             position=(-3.0, 0.0, -20.0))
+
+    boo2 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(3.0, 2.0, -20.0))
+    boo3 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(-3.0, 2.0, -20.0))
+    boo4 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(0.0, 2.0, -25.0))
+    boo5 = _add_model(registry, scene, "boo64/boo64.obj",
+                      "boo64/boo64_tex.png",
+                      position=(5.0, 2.0, -25.0))
+
     porta = _add_model(registry, scene, "porta64/porta64.obj",
                        "porta64/Inside_baseColor.png",
                        position=(0.0, 0.0, -4.0))
@@ -209,7 +229,13 @@ def main():
         ("mario",      mario),
         ("estrela",    estrela),
         ("arvore",     arvore),
-        ("porta",      porta),
+        ("plataforma1", plataforma1),
+        ("plataforma2", plataforma2),
+        ("boo2",        boo2),
+        ("boo3",        boo3),
+        ("boo4",        boo4),
+        ("boo5",        boo5),
+        ("porta",       porta),
         *[(f"coin{i+1}", coins[i]) for i in range(6)],
     ]
 
