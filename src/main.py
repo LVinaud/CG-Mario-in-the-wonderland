@@ -170,6 +170,15 @@ def main():
                         "arvore64/arvore64_tex.png",
                         position=(-5.0, 0.0, -22.0))
 
+    # 6 moedinhas — mesmo mesh, instâncias independentes
+    coins = []
+    for i in range(6):
+        c = _add_model(registry, scene, "coin64/coin.obj",
+                       "coin64/coin.png",
+                       position=(float(i) * 2.0, 1.0, -18.0),
+                       rotation_axis=(0, 1, 0))
+        coins.append(c)
+
     # CRÍTICO: upload_to_gpu APÓS todos os register().
     registry.upload_to_gpu(program)
 
@@ -188,6 +197,7 @@ def main():
         ("mario",      mario),
         ("estrela",    estrela),
         ("arvore",     arvore),
+        *[(f"coin{i+1}", coins[i]) for i in range(6)],
     ]
 
     # Aplica layout salvo anteriormente (se existir)
