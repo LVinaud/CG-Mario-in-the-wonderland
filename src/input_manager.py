@@ -8,8 +8,8 @@ import glfw
 
 class InputManager:
     def __init__(self):
-        self._on_press = {}   # disparado uma vez no PRESS
-        self._on_hold = {}    # disparado em PRESS e em REPEAT (segurar tecla)
+        self._on_press = {}   # Para ações disparadas uma vez no PRESS
+        self._on_hold = {}    # Para ações disparadas em PRESS e em REPEAT (segurar tecla)
 
     def on_press(self, key, callback):
         self._on_press[key] = callback

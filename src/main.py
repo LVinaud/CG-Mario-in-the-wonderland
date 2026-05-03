@@ -35,9 +35,19 @@ def _sel(state):
     return state["editor_objects"][state["editor_idx"]][1]
 
 
+def _scale_y(obj, factor):
+    """Escala apenas o eixo Y (req. 7 — escala em UM eixo só)."""
+    obj.scale[1] *= factor
+
+
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        save_layout(state["editor_objects"], camera)
+        # Só persiste se estiver em modo edit — assim a demonstração da req. 7
+        # (mover boo, rotacionar estrela, etc.) não sobrescreve o layout salvo.
+        if state["mode"] == "edit":
+            save_layout(state["editor_objects"], camera)
+        else:
+            print("[modo viz] alterações não salvas (use modo edit para salvar)")
         glfw.set_window_should_close(window, True)
         return
 
@@ -45,8 +55,14 @@ def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
         state["polygonal_mode"] = not state["polygonal_mode"]
         return
 
-    # TAB / SHIFT+TAB — cicla objeto selecionado
-    if key == glfw.KEY_TAB and action == glfw.PRESS:
+    # T — alterna entre modo viz (req. trabalho) e modo edit
+    if key == glfw.KEY_T and action == glfw.PRESS:
+        state["mode"] = "edit" if state["mode"] == "viz" else "viz"
+        print(f"[modo] {state['mode']}")
+        return
+
+    # TAB / SHIFT+TAB — só funciona no modo edit
+    if key == glfw.KEY_TAB and action == glfw.PRESS and state["mode"] == "edit":
         objs = state["editor_objects"]
         delta = -1 if (mods & glfw.MOD_SHIFT) else 1
         state["editor_idx"] = (state["editor_idx"] + delta) % len(objs)
@@ -161,7 +177,7 @@ def main():
                        position=(0.0, 0.0, -25.0))
 
     # ===================================================================
-    # Objetos com transformação por teclado (req. 7)
+    # Objetos com transformação por teclado
     # ===================================================================
     mario = _add_model(registry, scene, "mario64/mario64.obj",
                        "mario64/mario64_tex.png",
@@ -257,27 +273,51 @@ def main():
         "last_frame": 0.0,
         "editor_objects": editor_objects,
         "editor_idx": 0,
+        "mode": "viz",  # padrão = modo dos requisitos do trabalho
     }
 
-    print("[editor] Controles:")
+    print("[modo viz] (padrão — requisitos do trabalho)")
+    print("  Setas        — translada boo")
+    print("  Z / X        — rotaciona estrela")
+    print("  N / M        — escala pipe3 em Y")
+    print("  T            — alterna para modo edit")
+    print("[modo edit]")
     print("  TAB / SHIFT+TAB  — próximo/anterior objeto")
-    print("  Setas            — translada X/Z")
-    print("  Page Up/Down     — translada Y")
+    print("  Setas            — translada X/Y do selecionado")
+    print("  G / H            — translada Z do selecionado")
     print("  R / F            — rotaciona ±1°")
     print("  = / -            — escala")
-    print("  ESC              — salva layout e fecha")
+    print("[geral] ESC — salva layout e fecha; P — wireframe")
 
-    # Bindings do editor — operam sobre o objeto selecionado dinamicamente
-    input_mgr.on_hold(glfw.KEY_UP,        lambda: _sel(state).translate(0,  _T, 0))
-    input_mgr.on_hold(glfw.KEY_DOWN,      lambda: _sel(state).translate(0, -_T, 0))
-    input_mgr.on_hold(glfw.KEY_LEFT,      lambda: _sel(state).translate(-_T, 0, 0))
-    input_mgr.on_hold(glfw.KEY_RIGHT,     lambda: _sel(state).translate( _T, 0, 0))
-    input_mgr.on_hold(glfw.KEY_G,   lambda: _sel(state).translate(0, 0, -_T))
-    input_mgr.on_hold(glfw.KEY_H, lambda: _sel(state).translate(0, 0,  _T))
-    input_mgr.on_hold(glfw.KEY_R,         lambda: _sel(state).rotate( _R))
-    input_mgr.on_hold(glfw.KEY_F,         lambda: _sel(state).rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: _sel(state).scale_by(_S))
-    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: _sel(state).scale_by(1.0 / _S))
+    # Bindings com chaveamento por modo (uma callback por tecla, ramifica internamente)
+    def _up():
+        if state["mode"] == "edit": _sel(state).translate(0,  _T, 0)
+        else:                       boo.translate(0, 0, -_T)
+    def _down():
+        if state["mode"] == "edit": _sel(state).translate(0, -_T, 0)
+        else:                       boo.translate(0, 0,  _T)
+    def _left():
+        if state["mode"] == "edit": _sel(state).translate(-_T, 0, 0)
+        else:                       boo.translate(-_T, 0, 0)
+    def _right():
+        if state["mode"] == "edit": _sel(state).translate( _T, 0, 0)
+        else:                       boo.translate( _T, 0, 0)
+    input_mgr.on_hold(glfw.KEY_UP,        _up)
+    input_mgr.on_hold(glfw.KEY_DOWN,      _down)
+    input_mgr.on_hold(glfw.KEY_LEFT,      _left)
+    input_mgr.on_hold(glfw.KEY_RIGHT,     _right)
+    input_mgr.on_hold(glfw.KEY_Z,         lambda: state["mode"] == "viz" and estrela.rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_X,         lambda: state["mode"] == "viz" and estrela.rotate( _R))
+    input_mgr.on_hold(glfw.KEY_N,         lambda: state["mode"] == "viz" and _scale_y(pipe3, 1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_M,         lambda: state["mode"] == "viz" and _scale_y(pipe3, _S))
+
+    # Bindings exclusivos do modo edit (teclas sem conflito com a câmera)
+    input_mgr.on_hold(glfw.KEY_G,         lambda: state["mode"] == "edit" and _sel(state).translate(0, 0, -_T))
+    input_mgr.on_hold(glfw.KEY_H,         lambda: state["mode"] == "edit" and _sel(state).translate(0, 0,  _T))
+    input_mgr.on_hold(glfw.KEY_R,         lambda: state["mode"] == "edit" and _sel(state).rotate( _R))
+    input_mgr.on_hold(glfw.KEY_F,         lambda: state["mode"] == "edit" and _sel(state).rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: state["mode"] == "edit" and _sel(state).scale_by(_S))
+    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: state["mode"] == "edit" and _sel(state).scale_by(1.0 / _S))
 
     camera.set_bounds((-100, 0.5, -100), (100, 100, 100))
 

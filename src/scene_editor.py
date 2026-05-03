@@ -25,7 +25,8 @@ def load_layout(named_objects, camera=None):
         camera.position.x, camera.position.y, camera.position.z = c["position"]
         camera.yaw = c["yaw"]
         camera.pitch = c["pitch"]
-        # reconstrói front a partir de yaw/pitch restaurados
+        
+        # reconstroi front a partir de yaw/pitch restaurados
         import glm, math
         front = glm.vec3()
         front.x = math.cos(math.radians(camera.yaw)) * math.cos(math.radians(camera.pitch))
