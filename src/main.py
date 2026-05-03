@@ -12,6 +12,7 @@ from src.input_manager import InputManager
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
 from src.shader import Shader
+from src.skybox import Skybox
 from src.transforms import make_projection, make_view
 
 
@@ -85,6 +86,15 @@ def main():
     input_mgr = InputManager()
 
     # ===================================================================
+    # SKYBOX (req. 8) — caixa grande com textura de céu envolvendo o mundo.
+    # ===================================================================
+    skybox_h = registry.register(
+        os.path.join(ASSETS_DIR, "skybox/skybox.obj"),
+        [os.path.join(ASSETS_DIR, "skybox/skybox.png")],
+    )
+    scene.skybox = Skybox(skybox_h, scale=50.0)
+
+    # ===================================================================
     # AMBIENTE INTERNO — sala do castelo, em torno da origem.
     # castleroom64 delimita o ambiente (não conta nos 6 da req. 2).
     # ===================================================================
@@ -156,7 +166,7 @@ def main():
     registry.upload_to_gpu(program)
 
     # Bounds da câmera — perimetra a sala + área externa, com folga.
-    camera.set_bounds((-15.0, 0.5, -30.0), (15.0, 10.0, 10.0))
+    camera.set_bounds((-40.0, 0.5, -40.0), (40.0, 40.0, 10.0))
 
     state = {
         "polygonal_mode": False,
