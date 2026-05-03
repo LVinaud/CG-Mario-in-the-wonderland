@@ -153,6 +153,12 @@ def main():
     pipe = _add_model(registry, scene, "pipe64/pipe64.obj",
                       "pipe64/pipe64_tex.png",
                       position=(5.0, 0.0, -22.0))
+    pipe2 = _add_model(registry, scene, "pipe64/pipe64.obj",
+                       "pipe64/pipe64_tex.png",
+                       position=(-5.0, 0.0, -22.0))
+    pipe3 = _add_model(registry, scene, "pipe64/pipe64.obj",
+                       "pipe64/pipe64_tex.png",
+                       position=(0.0, 0.0, -25.0))
 
     # ===================================================================
     # Objetos com transformação por teclado (req. 7)
@@ -169,6 +175,10 @@ def main():
     arvore = _add_model(registry, scene, "arvore64/arvore64.obj",
                         "arvore64/arvore64_tex.png",
                         position=(-5.0, 0.0, -22.0))
+
+    porta = _add_model(registry, scene, "porta64/porta64.obj",
+                       "porta64/Inside_baseColor.png",
+                       position=(0.0, 0.0, -4.0))
 
     # 6 moedinhas — mesmo mesh, instâncias independentes
     coins = []
@@ -194,9 +204,12 @@ def main():
         ("chao",       chao),
         ("boo",        boo),
         ("pipe",       pipe),
+        ("pipe2",      pipe2),
+        ("pipe3",      pipe3),
         ("mario",      mario),
         ("estrela",    estrela),
         ("arvore",     arvore),
+        ("porta",      porta),
         *[(f"coin{i+1}", coins[i]) for i in range(6)],
     ]
 
