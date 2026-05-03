@@ -49,6 +49,11 @@ class MeshRegistry:
         texture_ids = [self._load_texture(p) for p in texture_paths]
         return MeshHandle(vertex_offset=offset, vertex_count=count, texture_ids=texture_ids)
 
+    # Texturas maiores que isso são reduzidas antes de subirem para a GPU. Algumas
+    # imagens (ex.: a do mario64, 4962×3675) estouram a alocação do driver OpenGL,
+    # mesmo em GPUs modernas. 2048px atende com folga ao detalhe que precisamos.
+    MAX_TEXTURE_DIM = 2048
+
     def _load_texture(self, path):
         """Carrega imagem para a GPU — mesmo fluxo de load_texture_from_file da Aula 13."""
         tid = self._num_textures
@@ -60,6 +65,11 @@ class MeshRegistry:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         img = Image.open(path).convert("RGB")
+        if max(img.size) > self.MAX_TEXTURE_DIM:
+            ratio = self.MAX_TEXTURE_DIM / max(img.size)
+            new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
+            img = img.resize(new_size, Image.LANCZOS)
+
         # stride y negativo inverte a imagem verticalmente (texturas em obj costumam vir invertidas)
         image_data = img.tobytes("raw", "RGB", 0, -1)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.size[0], img.size[1],
