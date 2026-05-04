@@ -319,7 +319,7 @@ def main():
     input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: state["mode"] == "edit" and _sel(state).scale_by(_S))
     input_mgr.on_hold(glfw.KEY_MINUS,     lambda: state["mode"] == "edit" and _sel(state).scale_by(1.0 / _S))
 
-    camera.set_bounds((-70, 0.5, -70), (70, 70, 70))
+    camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
 
     glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, state))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
