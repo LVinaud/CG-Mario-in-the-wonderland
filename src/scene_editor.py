@@ -1,6 +1,8 @@
-"""Persistência do layout da cena: salva/carrega posição, rotação e escala de cada objeto."""
+"""Garante a persistência do layout da cena: salva/carrega posição, rotação e escala de cada objeto."""
+
 import json
 import os
+import glm, math
 
 LAYOUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -25,9 +27,8 @@ def load_layout(named_objects, camera=None):
         camera.position.x, camera.position.y, camera.position.z = c["position"]
         camera.yaw = c["yaw"]
         camera.pitch = c["pitch"]
-        
+
         # reconstroi front a partir de yaw/pitch restaurados
-        import glm, math
         front = glm.vec3()
         front.x = math.cos(math.radians(camera.yaw)) * math.cos(math.radians(camera.pitch))
         front.y = math.sin(math.radians(camera.pitch))

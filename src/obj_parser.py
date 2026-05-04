@@ -1,7 +1,6 @@
-"""Parser de arquivos Wavefront (.obj). Função pura: arquivo -> dicionário.
+"""Parser de arquivos Wavefront (.obj). Função pura que leva um arquivo para um dicionário Python.
 
-Quem decide o que fazer com os vértices depois (acumular num VBO global,
-mandar para GPU etc.) é o MeshRegistry.
+É um módulo auxiliar do MeshRegistry.
 """
 
 

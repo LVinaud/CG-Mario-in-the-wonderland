@@ -1,8 +1,7 @@
 """Skybox: caixa grande estática usando o mesmo shader dos demais objetos.
 
-É essencialmente um ObjetoGrafico estático com escala enorme. A classe
-existe para sinalizar intenção e expor `bounds`, que é o tamanho
-usado pela Camera para clamping (req. 9).
+É uma subclasse do ObjetoGrafico estático com escala enorme. Essa classe
+existe para facilitar a legibilidade e diferenciação ao sinalizar intenção e expor "bounds".
 """
 from src.graphic_object import ObjetoGrafico
 

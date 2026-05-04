@@ -1,4 +1,3 @@
-"""Entry point. Rodar a partir da raiz do projeto:  python -m src.main"""
 import functools
 import os
 
@@ -16,7 +15,7 @@ from src.shader import Shader
 from src.skybox import Skybox
 from src.transforms import make_projection, make_view
 
-
+# Constantes do código
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHADER_DIR = os.path.join(PROJECT_ROOT, "shaders")
 ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
@@ -42,8 +41,8 @@ def _scale_y(obj, factor):
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        # Só persiste se estiver em modo edit — assim a demonstração da req. 7
-        # (mover boo, rotacionar estrela, etc.) não sobrescreve o layout salvo.
+        # Só persiste se estiver em modo edit
+        # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
         if state["mode"] == "edit":
             save_layout(state["editor_objects"], camera)
         else:
@@ -55,13 +54,13 @@ def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
         state["polygonal_mode"] = not state["polygonal_mode"]
         return
 
-    # T — alterna entre modo viz (req. trabalho) e modo edit
+    # T — alterna entre modo viz e modo edit
     if key == glfw.KEY_T and action == glfw.PRESS:
         state["mode"] = "edit" if state["mode"] == "viz" else "viz"
         print(f"[modo] {state['mode']}")
         return
 
-    # TAB / SHIFT+TAB — só funciona no modo edit
+    # TAB / SHIFT+TAB. Só funciona no modo edit
     if key == glfw.KEY_TAB and action == glfw.PRESS and state["mode"] == "edit":
         objs = state["editor_objects"]
         delta = -1 if (mods & glfw.MOD_SHIFT) else 1
@@ -98,7 +97,7 @@ def framebuffer_size_callback(window, w, h):
 
 
 def _add_model(registry, scene, obj_path, tex_path, **kwargs):
-    """Atalho: registra mesh, cria ObjetoGrafico e adiciona à scene. Retorna o objeto."""
+    """Auxiliar para registrar mesh, criar ObjetoGrafico e adicionar à cena. Retornando o objeto."""
     handle = registry.register(
         os.path.join(ASSETS_DIR, obj_path),
         [os.path.join(ASSETS_DIR, tex_path)],
@@ -112,6 +111,7 @@ def main():
     window = init_window(WIDTH, HEIGHT, TITLE)
     setup_gl_state()
 
+    # Inicialicando o OpenGl e os Objetos Singletons
     shader = Shader(
         os.path.join(SHADER_DIR, "vertex_shader.vs"),
         os.path.join(SHADER_DIR, "fragment_shader.fs"),
@@ -124,18 +124,14 @@ def main():
     scene = Scene(camera=camera)
     input_mgr = InputManager()
 
-    # ===================================================================
-    # SKYBOX (req. 8)
-    # ===================================================================
+    # Configurando o skybox
     skybox_h = registry.register(
         os.path.join(ASSETS_DIR, "skybox/skybox.obj"),
         [os.path.join(ASSETS_DIR, "skybox/skybox.png")],
     )
     scene.skybox = Skybox(skybox_h, scale=1.0)
 
-    # ===================================================================
-    # AMBIENTE INTERNO — sala do castelo
-    # ===================================================================
+    # Carregando objetos do ambiente interno (sala do castelo)
     castleroom = _add_model(registry, scene, "castleroom64/castleroom64.obj",
                             "castleroom64/castleroom64_tex.png",
                             position=(0.0, 0.0, 0.0))
@@ -155,9 +151,7 @@ def main():
                       "toad64/toad64_tex.png",
                       position=(-3.0, 0.0, 0.5))
 
-    # ===================================================================
-    # AMBIENTE EXTERNO
-    # ===================================================================
+    # Carregando objetos do ambiente externo (fase do Mário)
     chao = _add_model(registry, scene, "chao64/chao64.obj",
                       "chao64/char64_tex.png",
                       position=(0.0, 0.0, -20.0))
@@ -176,9 +170,6 @@ def main():
                        "pipe64/pipe64_tex.png",
                        position=(0.0, 0.0, -25.0))
 
-    # ===================================================================
-    # Objetos com transformação por teclado
-    # ===================================================================
     mario = _add_model(registry, scene, "mario64/mario64.obj",
                        "mario64/mario64_tex.png",
                        position=(0.0, 0.0, -15.0))
@@ -216,7 +207,7 @@ def main():
                        "porta64/Inside_baseColor.png",
                        position=(0.0, 0.0, -4.0))
 
-    # 16 moedinhas — todas giram continuamente no loop
+    # Carrregando as 16 moedas da fase. Todas giram continuamente no loop
     coins = []
     for i in range(16):
         c = _add_model(registry, scene, "coin64/coin.obj",
@@ -225,7 +216,7 @@ def main():
                        rotation_axis=(0, 1, 0))
         coins.append(c)
 
-    # 15 árvores
+    # Carregando as 15 árvores que preenchem o cenário externo
     trees = []
     for i in range(15):
         t = _add_model(registry, scene, "arvore64/arvore64.obj",
@@ -233,12 +224,10 @@ def main():
                        position=(float(i) * 3.0, 0.0, -30.0))
         trees.append(t)
 
-    # CRÍTICO: upload_to_gpu APÓS todos os register().
+    # Upload final de todos os objetos carregados na GPU
     registry.upload_to_gpu(program)
 
-    # ===================================================================
-    # Editor de cena — lista de objetos nomeados
-    # ===================================================================
+    # Configurando o editor de cena
     editor_objects = [
         ("castleroom", castleroom),
         ("quadro",     quadro),
@@ -273,9 +262,10 @@ def main():
         "last_frame": 0.0,
         "editor_objects": editor_objects,
         "editor_idx": 0,
-        "mode": "viz",  # padrão = modo dos requisitos do trabalho
+        "mode": "viz",  # Garante que a cena comece no modo de visualização
     }
 
+    # Imprimindo os controles no terminal
     print("[modo viz] (padrão — requisitos do trabalho)")
     print("  Setas        — translada boo")
     print("  Z / X        — rotaciona estrela")
@@ -289,7 +279,7 @@ def main():
     print("  = / -            — escala")
     print("[geral] ESC — salva layout e fecha; P — wireframe")
 
-    # Bindings com chaveamento por modo (uma callback por tecla, ramifica internamente)
+    # Bindings com chaveamento por modo
     def _up():
         if state["mode"] == "edit": _sel(state).translate(0,  _T, 0)
         else:                       boo.translate(0, 0, -_T)

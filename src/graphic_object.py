@@ -1,7 +1,7 @@
 """ObjetoGrafico: representa cada modelo desenhável da cena.
 
-`static=True` desliga as transformações vindas do teclado — útil para móveis,
-paredes, quadro, velas, etc. (e também é o que a Skybox usa por baixo).
+`static=True` desliga as transformações vindas do teclado — Utilizada em elementos decorativos
+do cenário.
 """
 from OpenGL.GL import *
 
@@ -41,6 +41,11 @@ class ObjetoGrafico:
         self.texture_index = index
 
     def draw(self, shader_program):
+        """
+        Gera a matriz com o estado do objeto, aplicando sua textura e a matriz model associada ao
+        seu estado de transforamções geométricas
+        """
+
         mat = make_model(self.rotation_angle, self.rotation_axis, self.position, self.scale)
         loc_model = glGetUniformLocation(shader_program, "model")
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, mat)

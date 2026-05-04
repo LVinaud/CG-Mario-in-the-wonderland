@@ -1,8 +1,7 @@
-"""MeshRegistry: dono dos VBOs e do contador de texturas.
+"""MeshRegistry: Gera e gerencia os VBOs e do contador de texturas.
 
 Todos os modelos compartilham UM único par de VBOs (positions + uvs).
-Cada modelo é identificado por um (offset, count) no buffer global —
-mesmo esquema usado na base do professor.
+Cada modelo é identificado por um (offset, count) no buffer global
 """
 import ctypes
 from dataclasses import dataclass, field
@@ -24,7 +23,11 @@ class MeshHandle:
 
 
 class MeshRegistry:
-    """Acumula vértices/UVs e gerencia texturas. Singleton de fato (1 instância no main)."""
+    """Acumula vértices/UVs e gerencia texturas."""
+
+    # Constante para crop de texturas estremamente grandes
+    # (observação: No fim do projeto, elas foram trocadas para versões menores)
+    MAX_TEXTURE_DIM = 2048
 
     def __init__(self):
         self._vertices = []
@@ -34,8 +37,8 @@ class MeshRegistry:
     def register(self, obj_path, texture_paths):
         """Registra um modelo. Retorna um MeshHandle que o ObjetoGrafico vai guardar."""
         model = parse_obj(obj_path)
-        print('Processando modelo {}. Vertice inicial: {}'.format(obj_path, len(self._vertices)))
 
+        # Salva objetos de acordo com a triangulação
         offset = len(self._vertices)
         for face in model["faces"]:
             for vid in triangulate_face(face[0]):
@@ -44,18 +47,14 @@ class MeshRegistry:
                 self._tex_coords.append(model["texture"][tid - 1])
         count = len(self._vertices) - offset
 
-        print('Processando modelo {}. Vertice final: {}'.format(obj_path, len(self._vertices)))
 
         texture_ids = [self._load_texture(p) for p in texture_paths]
         return MeshHandle(vertex_offset=offset, vertex_count=count, texture_ids=texture_ids)
 
-    # Constante para crop de texturas estremamente grandes (observação: No fim do projeto, elas foram trocadas para versões menores)
-    MAX_TEXTURE_DIM = 2048
-
     def _load_texture(self, path):
-        """Carrega imagem para a GPU — mesmo fluxo de load_texture_from_file da Aula 13."""
+        """Carrega imagem para a GPU."""
         tid = self._num_textures
-        print(tid)
+
         glBindTexture(GL_TEXTURE_2D, tid)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
@@ -77,7 +76,7 @@ class MeshRegistry:
         return tid
 
     def upload_to_gpu(self, shader_program):
-        """Sobe vértices e UVs para a GPU. Chamar UMA vez, depois de registrar tudo."""
+        """Sobe vértices e UVs para a GPU. Chamar uma única vez, depois de registrar tudo."""
         if not self._vertices:
             return
 
