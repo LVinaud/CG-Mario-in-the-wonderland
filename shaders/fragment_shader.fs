@@ -1,4 +1,4 @@
-#version 330 core
+#version 120
 
 uniform vec4 color;
 varying vec2 out_texture;

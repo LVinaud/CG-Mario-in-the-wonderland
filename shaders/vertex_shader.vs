@@ -1,4 +1,4 @@
-#version 330 core
+#version 120
 
 attribute vec3 position;
 attribute vec2 texture_coord;
