@@ -19,6 +19,18 @@ Este projeto da diciplina SCC0250 - Computação Gráfica visa produzir uma cena
 - Deve haver no mínimo 3 objetos no ambiente interno e 3 no externo.
 - Objetos diferentes devem executar transformação geométricas diferentes.
 
+## Requisitos da illuminação
+
+- Um objeto transladável do ambiente externo deve ser iluminado.
+- Dois objetos no ambiente interno devem ser fonte de luz.
+- As fontes de luz de um ambiente interno devem afetar apenas os objetos desse ambiente interno.
+- As fontes de luz devem poder ser desligadas ou ligadas independentemente.
+- Deve haver eventos de teclado para incrementar ou decrementar a luz ambiente.
+- Deve haver eventos de teclado para incrementar ou decrementar a reflexão difusa.
+- Deve haver eventos de teclado para incrementar ou decrementar a reflexão especular.
+
+  Obs: Para mostrar isso, os eventos da entrega 2 (em 'requisitos da cena') não precisam estar ativos.
+
 ## Composição da Cena
 
 - **Ambiente interno:** Um cômodo do castelo da princesa `Peach` com um quadro mágico que leva para o ambiente externo.
