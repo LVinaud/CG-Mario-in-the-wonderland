@@ -12,6 +12,7 @@ LAYOUT_PATH = os.path.join(
 class SceneEditor():
     def __init__(self):
         self._named_objects = []
+        self.curr_edit_idx = 0
 
     def add_object(self, name, obj):
         """Adciona um novo objeto na lista"""
@@ -24,6 +25,26 @@ class SceneEditor():
 
     def __getitem__(self, idx):
         return self._named_objects[idx]
+
+    def get_editing_object(self):
+        """Retorna a referencia ao objeto sendo atualmente editado"""
+
+        return self._named_objects[self.curr_edit_idx][1]
+
+    def get_editing_object_name(self):
+        """Retorna o nome do atual objeto em edição"""
+
+        return self._named_objects[self.curr_edit_idx][0]
+
+    def set_next_object_to_edit(self):
+        """Altera o estado para tornar editar o próximo objeto na lista"""
+
+        self.curr_edit_idx += 1 % len(self._named_objects)
+
+    def set_previous_object_to_edit(self):
+        """Altera o estado para tornar editar o objeto anterior na lista"""
+
+        self.curr_edit_idx -= 1 % len(self._named_objects)
 
     def load_layout(self, camera=None):
         """Aplica posições salvas nos objetos e, opcionalmente, restaura a câmera."""

@@ -8,7 +8,6 @@ from src.camera import Camera
 from src.gl_setup import init_window, setup_gl_state
 from src.graphic_object import ObjetoGrafico
 from src.input_manager import InputManager
-from src.scene_editor import SceneEditor
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
 from src.shader import Shader
@@ -29,25 +28,21 @@ _R = 1.0    # rotação (graus)
 _S = 1.02   # escala (fator multiplicativo)
 
 
-def _sel(state):
-    """Retorna o objeto atualmente selecionado no editor."""
-    return state["editor_objects"][state["editor_idx"]][1]
-
 
 def _scale_y(obj, factor):
     """Escala apenas o eixo Y. Função usada para escalar um dos canos externos da cena"""
     obj.scale[1] *= factor
 
 
-def key_callback(camera, input_mgr, scene_editor, state, window, key, scancode, action, mods):
+def key_callback(camera, input_mgr, scene: Scene, window, key, scancode, action, mods):
     """Callback dos inputs da Window GFLW para a lógica interna do código"""
 
     # Configurando as ações na edição ao fechar a cena com ESC
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         # Só persiste se estiver em modo edit
         # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
-        if state["mode"] == "edit":
-            scene_editor.save_layout(camera)
+        if scene.state["mode"] == "edit":
+            scene.scene_editor.save_layout(camera)
         else:
             print("[modo viz] alterações não salvas (use modo edit para salvar)")
         glfw.set_window_should_close(window, True)
@@ -55,21 +50,27 @@ def key_callback(camera, input_mgr, scene_editor, state, window, key, scancode, 
 
     # P - Ativa o modo poligonal
     if key == glfw.KEY_P and action == glfw.PRESS:
-        state["polygonal_mode"] = not state["polygonal_mode"]
+        scene.state["polygonal_mode"] = not scene.state["polygonal_mode"]
         return
 
     # T - alterna entre modo viz e modo edit
     if key == glfw.KEY_T and action == glfw.PRESS:
-        state["mode"] = "edit" if state["mode"] == "viz" else "viz"
-        print(f"[modo] {state['mode']}")
+        scene.state["mode"] = "edit" if scene.state["mode"] == "viz" else "viz"
+        print(f"[modo] {scene.state['mode']}")
         return
 
     # TAB / SHIFT+TAB. Só funciona no modo edit
-    if key == glfw.KEY_TAB and action == glfw.PRESS and state["mode"] == "edit":
-        objs = state["editor_objects"]
-        delta = -1 if (mods & glfw.MOD_SHIFT) else 1
-        state["editor_idx"] = (state["editor_idx"] + delta) % len(objs)
-        name, _ = objs[state["editor_idx"]]
+    if key == glfw.KEY_TAB and action == glfw.PRESS and scene.state["mode"] == "edit":
+        #objs = scene.state["editor_objects"]
+
+        # Se shift, volta para o objeto anterior
+        if mods & glfw.MOD_SHIFT:
+            scene.scene_editor.set_previous_object_to_edit()
+        else:
+            scene.scene_editor.set_next_object_to_edit()
+
+        # Mostrando o objeto em edição na tela
+        name = scene.scene_editor.get_editing_object_name()
         print(f"[editor] Selecionado: {name}  (TAB = próximo, SHIFT+TAB = anterior)")
         return
 
@@ -113,7 +114,7 @@ def _generate_obj_paths(obj_name):
 
     return obj_file_name, tex_file_name
 
-def _add_model(registry, scene, scene_editor, obj_name, instance_idx=0):
+def _add_model(registry, scene, obj_name, instance_idx=0):
     """Auxiliar para registrar mesh, criar ObjetoGrafico e adicionar à cena. Retornando o objeto."""
 
     # Criando os caminhos para os arquivos
@@ -131,9 +132,9 @@ def _add_model(registry, scene, scene_editor, obj_name, instance_idx=0):
 
     # Adcionando no editor com o nome correto
     if instance_idx > 0:
-        scene_editor.add_object(obj_name+str(instance_idx), obj)
+        scene.scene_editor.add_object(obj_name+str(instance_idx), obj)
     else:
-        scene_editor.add_object(obj_name, obj)
+        scene.scene_editor.add_object(obj_name, obj)
     return obj
 
 
@@ -170,8 +171,7 @@ def main():
     registry = MeshRegistry()
     input_mgr = InputManager()
     camera = Camera(position=(0.0, 2.0, 3.0))
-    scene_editor = SceneEditor()
-    scene = Scene(camera, scene_editor)
+    scene = Scene(camera)
 
     # Configurando o skybox
     skybox_h = registry.register(
@@ -184,67 +184,67 @@ def main():
     camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
 
     # Carregando objetos do ambiente interno (sala do castelo)
-    _add_model(registry, scene, scene_editor, "castleroom")
-    _add_model(registry, scene, scene_editor, "chao")
-    _add_model(registry, scene, scene_editor, "torch", 1)
-    _add_model(registry, scene, scene_editor, "torch", 2)
-    _add_model(registry, scene, scene_editor, "quadro")
+    _add_model(registry, scene, "castleroom")
+    _add_model(registry, scene, "chao")
+    _add_model(registry, scene, "torch", 1)
+    _add_model(registry, scene, "torch", 2)
+    _add_model(registry, scene, "quadro")
 
     # Carregando objetos que são personagens no ambiente interno
-    _add_model(registry, scene, scene_editor, "toad")
-    _add_model(registry, scene, scene_editor, "mario")
-    _add_model(registry, scene, scene_editor, "porta")
+    _add_model(registry, scene, "toad")
+    _add_model(registry, scene, "mario")
+    _add_model(registry, scene, "porta")
 
     # Carregando objetos do ambiente externo
-    _add_model(registry, scene, scene_editor, "pipe", 1)
-    _add_model(registry, scene, scene_editor, "pipe", 2)
-    _add_model(registry, scene, scene_editor, "plataforma", 1)
-    _add_model(registry, scene, scene_editor, "plataforma", 2)
-    estrela = _add_model(registry, scene, scene_editor, "estrela")
+    _add_model(registry, scene, "pipe", 1)
+    _add_model(registry, scene, "pipe", 2)
+    _add_model(registry, scene, "plataforma", 1)
+    _add_model(registry, scene, "plataforma", 2)
+    estrela = _add_model(registry, scene, "estrela")
 
     # Lista de fantasmas :)
     boos = []
     for i in range(4):
-        boo = _add_model(registry, scene, scene_editor, "boo", i+1)
+        boo = _add_model(registry, scene, "boo", i+1)
         boos.append(boo)
 
     # Lista de moedas. Todas giram continuamente no loop
     coins = []
     for i in range(16):
-        c = _add_model(registry, scene, scene_editor, "coin", i+1)
+        c = _add_model(registry, scene, "coin", i+1)
         coins.append(c)
 
     # Lista de árvores
     trees = []
     for i in range(16):
-        t = _add_model(registry, scene, scene_editor, "arvore", i+1)
+        t = _add_model(registry, scene, "arvore", i+1)
         trees.append(t)
 
 
-    boo_movable = _add_model(registry, scene, scene_editor, "boo") #especial
-    pipe3 = _add_model(registry, scene, scene_editor, "pipe", 3) #especial
+    boo_movable = _add_model(registry, scene, "boo") #especial
+    pipe3 = _add_model(registry, scene, "pipe", 3) #especial
 
     # Upload final de todos os objetos carregados na GPU
     registry.upload_to_gpu(program)
 
     # Aplica layout salvo anteriormente (se existir)
-    scene_editor.load_layout(camera)
+    scene.scene_editor.load_layout(camera)
 
     # Imprimindo os controles no terminal
     print_commands_list()
 
     # Bindings com chaveamento por modo
     def _up():
-        if scene.state["mode"] == "edit": _sel(scene.state).translate(0,  _T, 0)
+        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(0,  _T, 0)
         else:                       boo_movable.translate(0, 0, -_T)
     def _down():
-        if scene.state["mode"] == "edit": _sel(scene.state).translate(0, -_T, 0)
+        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(0, -_T, 0)
         else:                       boo_movable.translate(0, 0,  _T)
     def _left():
-        if scene.state["mode"] == "edit": _sel(scene.state).translate(-_T, 0, 0)
+        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(-_T, 0, 0)
         else:                       boo_movable.translate(-_T, 0, 0)
     def _right():
-        if scene.state["mode"] == "edit": _sel(scene.state).translate( _T, 0, 0)
+        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate( _T, 0, 0)
         else:                       boo_movable.translate( _T, 0, 0)
 
     input_mgr.on_hold(glfw.KEY_UP,        _up)
@@ -257,16 +257,16 @@ def main():
     input_mgr.on_hold(glfw.KEY_M,         lambda: scene.state["mode"] == "viz" and _scale_y(pipe3, _S))
 
     # Bindings exclusivos do modo edit (teclas sem conflito com a câmera)
-    input_mgr.on_hold(glfw.KEY_G,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).translate(0, 0, -_T))
-    input_mgr.on_hold(glfw.KEY_H,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).translate(0, 0,  _T))
-    input_mgr.on_hold(glfw.KEY_R,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).rotate( _R))
-    input_mgr.on_hold(glfw.KEY_F,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: scene.state["mode"] == "edit" and _sel(scene.state).scale_by(_S))
-    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: scene.state["mode"] == "edit" and _sel(scene.state).scale_by(1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_G,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().translate(0, 0, -_T))
+    input_mgr.on_hold(glfw.KEY_H,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().translate(0, 0,  _T))
+    input_mgr.on_hold(glfw.KEY_R,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().rotate( _R))
+    input_mgr.on_hold(glfw.KEY_F,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().scale_by(_S))
+    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().scale_by(1.0 / _S))
 
 
 
-    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, scene_editor, scene.state))
+    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, scene))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
