@@ -37,7 +37,7 @@ def generate_obj_paths(obj_name):
     return obj_file_name, tex_file_name
 
 
-def add_model(registry, scene, obj_name, instance_idx=0):
+def add_model(registry, scene, obj_name, instance_idx=0, is_light_src=False):
     """Auxiliar para registrar mesh, criar ObjetoGrafico e adicionar à cena. Retornando o objeto."""
 
     # Criando os caminhos para os arquivos
@@ -51,7 +51,12 @@ def add_model(registry, scene, obj_name, instance_idx=0):
 
     # Adcionando referencia as estruturas de controle do código
     obj = ObjetoGrafico(mesh_handle=handle)
-    scene.add(obj)
+
+    # Adcionando o objeto na lista correta da cena
+    if not is_light_src:
+        scene.add_object(obj)
+    else:
+        scene.add_light_src(obj)
 
     # Adcionando no editor com o nome correto
     if instance_idx > 0:

@@ -5,13 +5,13 @@
 
 
 def parse_obj(filepath):
-    """Lê um .obj e devolve {'vertices', 'texture', 'faces'}.
+    """Lê um .obj e devolve {'vertices', 'texture', 'normais', 'faces'}.
 
-    Ignora normais (vn) e linhas de comentário. Cada face vira uma tupla
     (indices_de_vertice, indices_de_textura, material).
     """
     vertices = []
     texture_coords = []
+    normais = []
     faces = []
     material = None
 
@@ -24,24 +24,35 @@ def parse_obj(filepath):
                 continue
 
             if values[0] == "v":
-                vertices.append(values[1:4])
+                vertices.append([float(x) for x in values[1:4]])
             elif values[0] == "vt":
-                texture_coords.append(values[1:3])
+                texture_coords.append([float(x) for x in values[1:3]])
+            elif values[0] == "vn":
+                normais.append([float(x) for x in values[1:4]])
             elif values[0] in ("usemtl", "usemat"):
                 material = values[1]
             elif values[0] == "f":
                 face = []
                 face_texture = []
+                face_normal = []
                 for v in values[1:]:
                     w = v.split("/")
                     face.append(int(w[0]))
+
+                    # Adcionando o índice da coordenada de textura
                     if len(w) >= 2 and len(w[1]) > 0:
                         face_texture.append(int(w[1]))
                     else:
                         face_texture.append(0)
-                faces.append((face, face_texture, material))
 
-    return {"vertices": vertices, "texture": texture_coords, "faces": faces}
+                    # Adcionando o índice da normal
+                    if len(w) >=3 and len(w[2]) > 0:
+                        face_normal.append(int(w[2]))
+                    else:
+                        face_normal.append(0)
+                faces.append((face, face_texture, face_normal, material))
+
+    return {"vertices": vertices, "texture": texture_coords, "normais": normais, "faces": faces}
 
 
 def triangulate_face(indices):

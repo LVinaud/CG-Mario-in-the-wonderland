@@ -8,7 +8,6 @@ from src.config import  *
 from src.utils import add_model, print_commands_list, create_scene_binds
 from src.camera import Camera
 from src.gl_setup import init_window, setup_gl_state, mouse_callback, framebuffer_size_callback
-from src.graphic_object import ObjetoGrafico
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
 from src.shader import Shader
@@ -91,12 +90,14 @@ def main():
 
     # Inicialicando o OpenGl e os shaders
     setup_gl_state()
-    shader = Shader(
-        os.path.join(SHADER_DIR, "vertex_shader.vs"),
-        os.path.join(SHADER_DIR, "fragment_shader.fs"),
+    lightable_shader = Shader(
+        os.path.join(SHADER_DIR, "lightable_vertex_shader.vs"),
+        os.path.join(SHADER_DIR, "lightable_fragment_shader.fs"),
     )
-    shader.use()
-    program = shader.get_program()
+    light_src_shader = Shader(
+        os.path.join(SHADER_DIR, "light_src_vertex_shader.vs"),
+        os.path.join(SHADER_DIR, "light_src_fragment_shader.fs"),
+    )
 
     # Criando os objetos singletons para construir a cena
     registry = MeshRegistry()
@@ -143,14 +144,14 @@ def main():
     # Objetos especiais que se movem pela cena
     coins = []
     for i in range(16):
-        c = add_model(registry, scene, "coin", i+1)
+        c = add_model(registry, scene, "coin", i+1, True)
         coins.append(c)
 
     boo_movable = add_model(registry, scene, "boo") #especial
     pipe3 = add_model(registry, scene, "pipe", 3) #especial
 
     # Upload final dos objetos na GPU e carregamento dos seus estados na cena
-    registry.upload_to_gpu(program)
+    registry.upload_to_gpu()
     scene.scene_editor.load_layout(camera)
 
     # Bindings das teclas no input manager por modo e callback
@@ -161,9 +162,9 @@ def main():
     glfw.set_key_callback(window, functools.partial(key_callback, camera, scene))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
+    glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     # Loop de renderização
-    glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     glfw.show_window(window)
     while not glfw.window_should_close(window):
         current_frame = glfw.get_time()
@@ -177,18 +178,12 @@ def main():
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if scene.is_at_polygonal_mode else GL_FILL)
 
-        view_mat = make_view(camera.position, camera.front, camera.up)
-        proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
-
 
         for coin in coins:
             coin.rotate(90.0 * scene.delta_time)
 
-        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
-        glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
-
         camera.update(scene.delta_time)
-        scene.draw(program)
+        scene.draw(light_src_shader, lightable_shader, WIDTH / HEIGHT, registry)
 
         glfw.swap_buffers(window)
 
