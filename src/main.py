@@ -137,6 +137,23 @@ def _add_model(registry, scene, scene_editor, obj_name, instance_idx=0):
     return obj
 
 
+def print_commands_list():
+    """Auxiliar para informar os controles do programa"""
+
+    print("[modo viz] (padrão — requisitos do trabalho)")
+    print("  Setas        — translada boo")
+    print("  Z / X        — rotaciona estrela")
+    print("  N / M        — escala pipe3 em Y")
+    print("  T            — alterna para modo edit")
+    print("[modo edit]")
+    print("  TAB / SHIFT+TAB  — próximo/anterior objeto")
+    print("  Setas            — translada X/Y do selecionado")
+    print("  G / H            — translada Z do selecionado")
+    print("  R / F            — rotaciona ±1°")
+    print("  = / -            — escala")
+    print("[geral] ESC — salva layout e fecha; P — wireframe")
+
+
 def main():
     window = init_window(WIDTH, HEIGHT, TITLE)
 
@@ -153,8 +170,8 @@ def main():
     registry = MeshRegistry()
     input_mgr = InputManager()
     camera = Camera(position=(0.0, 2.0, 3.0))
-    scene = Scene(camera=camera)
     scene_editor = SceneEditor()
+    scene = Scene(camera, scene_editor)
 
     # Configurando o skybox
     skybox_h = registry.register(
@@ -165,7 +182,6 @@ def main():
 
     # Configurando os limites físicos da câmera (considerando o skybox)
     camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
-
 
     # Carregando objetos do ambiente interno (sala do castelo)
     _add_model(registry, scene, scene_editor, "castleroom")
@@ -214,63 +230,43 @@ def main():
     # Aplica layout salvo anteriormente (se existir)
     scene_editor.load_layout(camera)
 
-    state = {
-        "polygonal_mode": False,
-        "delta_time": 0.0,
-        "last_frame": 0.0,
-        "editor_objects": scene_editor,
-        "editor_idx": 0,
-        "mode": "viz",  # Garante que a cena comece no modo de visualização
-    }
-
     # Imprimindo os controles no terminal
-    print("[modo viz] (padrão — requisitos do trabalho)")
-    print("  Setas        — translada boo")
-    print("  Z / X        — rotaciona estrela")
-    print("  N / M        — escala pipe3 em Y")
-    print("  T            — alterna para modo edit")
-    print("[modo edit]")
-    print("  TAB / SHIFT+TAB  — próximo/anterior objeto")
-    print("  Setas            — translada X/Y do selecionado")
-    print("  G / H            — translada Z do selecionado")
-    print("  R / F            — rotaciona ±1°")
-    print("  = / -            — escala")
-    print("[geral] ESC — salva layout e fecha; P — wireframe")
+    print_commands_list()
 
     # Bindings com chaveamento por modo
     def _up():
-        if state["mode"] == "edit": _sel(state).translate(0,  _T, 0)
+        if scene.state["mode"] == "edit": _sel(scene.state).translate(0,  _T, 0)
         else:                       boo_movable.translate(0, 0, -_T)
     def _down():
-        if state["mode"] == "edit": _sel(state).translate(0, -_T, 0)
+        if scene.state["mode"] == "edit": _sel(scene.state).translate(0, -_T, 0)
         else:                       boo_movable.translate(0, 0,  _T)
     def _left():
-        if state["mode"] == "edit": _sel(state).translate(-_T, 0, 0)
+        if scene.state["mode"] == "edit": _sel(scene.state).translate(-_T, 0, 0)
         else:                       boo_movable.translate(-_T, 0, 0)
     def _right():
-        if state["mode"] == "edit": _sel(state).translate( _T, 0, 0)
+        if scene.state["mode"] == "edit": _sel(scene.state).translate( _T, 0, 0)
         else:                       boo_movable.translate( _T, 0, 0)
 
     input_mgr.on_hold(glfw.KEY_UP,        _up)
     input_mgr.on_hold(glfw.KEY_DOWN,      _down)
     input_mgr.on_hold(glfw.KEY_LEFT,      _left)
     input_mgr.on_hold(glfw.KEY_RIGHT,     _right)
-    input_mgr.on_hold(glfw.KEY_Z,         lambda: state["mode"] == "viz" and estrela.rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_X,         lambda: state["mode"] == "viz" and estrela.rotate( _R))
-    input_mgr.on_hold(glfw.KEY_N,         lambda: state["mode"] == "viz" and _scale_y(pipe3, 1.0 / _S))
-    input_mgr.on_hold(glfw.KEY_M,         lambda: state["mode"] == "viz" and _scale_y(pipe3, _S))
+    input_mgr.on_hold(glfw.KEY_Z,         lambda: scene.state["mode"] == "viz" and estrela.rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_X,         lambda: scene.state["mode"] == "viz" and estrela.rotate( _R))
+    input_mgr.on_hold(glfw.KEY_N,         lambda: scene.state["mode"] == "viz" and _scale_y(pipe3, 1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_M,         lambda: scene.state["mode"] == "viz" and _scale_y(pipe3, _S))
 
     # Bindings exclusivos do modo edit (teclas sem conflito com a câmera)
-    input_mgr.on_hold(glfw.KEY_G,         lambda: state["mode"] == "edit" and _sel(state).translate(0, 0, -_T))
-    input_mgr.on_hold(glfw.KEY_H,         lambda: state["mode"] == "edit" and _sel(state).translate(0, 0,  _T))
-    input_mgr.on_hold(glfw.KEY_R,         lambda: state["mode"] == "edit" and _sel(state).rotate( _R))
-    input_mgr.on_hold(glfw.KEY_F,         lambda: state["mode"] == "edit" and _sel(state).rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: state["mode"] == "edit" and _sel(state).scale_by(_S))
-    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: state["mode"] == "edit" and _sel(state).scale_by(1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_G,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).translate(0, 0, -_T))
+    input_mgr.on_hold(glfw.KEY_H,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).translate(0, 0,  _T))
+    input_mgr.on_hold(glfw.KEY_R,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).rotate( _R))
+    input_mgr.on_hold(glfw.KEY_F,         lambda: scene.state["mode"] == "edit" and _sel(scene.state).rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: scene.state["mode"] == "edit" and _sel(scene.state).scale_by(_S))
+    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: scene.state["mode"] == "edit" and _sel(scene.state).scale_by(1.0 / _S))
 
 
 
-    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, scene_editor, state))
+    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, scene_editor, scene.state))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
@@ -279,27 +275,27 @@ def main():
 
     while not glfw.window_should_close(window):
         current_frame = glfw.get_time()
-        state["delta_time"] = current_frame - state["last_frame"]
-        state["last_frame"] = current_frame
+        scene.state["delta_time"] = current_frame - scene.state["last_frame"]
+        scene.state["last_frame"] = current_frame
 
         glfw.poll_events()
 
         glClearColor(0.1, 0.1, 0.15, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if state["polygonal_mode"] else GL_FILL)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if scene.state["polygonal_mode"] else GL_FILL)
 
         view_mat = make_view(camera.position, camera.front, camera.up)
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
 
-        camera.update(state["delta_time"])
 
         for coin in coins:
-            coin.rotate(90.0 * state["delta_time"])
+            coin.rotate(90.0 * scene.state["delta_time"])
 
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
 
+        camera.update(scene.state["delta_time"])
         scene.draw(program)
 
         glfw.swap_buffers(window)

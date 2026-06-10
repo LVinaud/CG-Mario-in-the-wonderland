@@ -2,10 +2,20 @@
 
 
 class Scene:
-    def __init__(self, camera, skybox=None):
+    def __init__(self, camera, scene_editor, skybox=None):
         self.camera = camera
         self.skybox = skybox
         self.objects = []
+
+        # Dicionaário que gerencia o estado da cena
+        self.state = {
+            "polygonal_mode": False,
+            "delta_time": 0.0,
+            "last_frame": 0.0,
+            "editor_objects": scene_editor,
+            "editor_idx": 0,
+            "mode": "viz",  # Garante que a cena comece no modo de visualização
+        }
 
     def add(self, obj):
         self.objects.append(obj)
