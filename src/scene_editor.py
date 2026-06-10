@@ -9,22 +9,22 @@ LAYOUT_PATH = os.path.join(
     "scene_layout.json",
 )
 
+# Passo de edição por quadro (enquanto a tecla está pressionada).
+_T = 0.25   # translação (unidades)
+_R = 1.0    # rotação (graus)
+_S = 1.02   # escala (fator multiplicativo)
+
 class SceneEditor():
     def __init__(self):
         self._named_objects = []
         self.curr_edit_idx = 0
 
+    # Metodos para manipular a estrutura de dados interna
     def add_object(self, name, obj):
         """Adciona um novo objeto na lista"""
 
         registry = (name, obj)
         self._named_objects.append(registry)
-
-    def __len__(self):
-        return len(self._named_objects)
-
-    def __getitem__(self, idx):
-        return self._named_objects[idx]
 
     def get_editing_object(self):
         """Retorna a referencia ao objeto sendo atualmente editado"""
@@ -46,6 +46,8 @@ class SceneEditor():
 
         self.curr_edit_idx -= 1 % len(self._named_objects)
 
+
+    # Metodos para carregar o objeto
     def load_layout(self, camera=None):
         """Aplica posições salvas nos objetos e, opcionalmente, restaura a câmera."""
         if not os.path.exists(LAYOUT_PATH):
@@ -91,3 +93,35 @@ class SceneEditor():
         with open(LAYOUT_PATH, "w") as f:
             json.dump(data, f, indent=2)
         print(f"[editor] Layout salvo em {LAYOUT_PATH}")
+
+
+    # Métodos para a edição
+    def move_editing_obj_plus_y(self):
+        self.get_editing_object().translate(0,  _T, 0)
+
+    def move_editing_obj_minus_y(self):
+        self.get_editing_object().translate(0, -_T, 0)
+
+    def move_editing_obj_minus_x(self):
+        self.get_editing_object().translate(-_T, 0, 0)
+
+    def move_editing_obj_plus_x(self):
+        self.get_editing_object().translate( _T, 0, 0)
+
+    def move_editing_obj_minus_z(self):
+        self.get_editing_object().translate(0, 0, -_T)
+
+    def move_editing_obj_plus_z(self):
+        self.get_editing_object().translate(0, 0,  _T)
+
+    def rotate_editing_obj_clockwise(self):
+        self.get_editing_object().rotate( _R)
+
+    def rotate_editing_not_clockwise(self):
+        self.get_editing_object().rotate(-_R)
+
+    def scale_up_editing_obj(self):
+        self.get_editing_object().scale_by(_S)
+
+    def scale_down_editing_obj(self):
+        self.get_editing_object().scale_by(1.0 / _S)

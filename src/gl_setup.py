@@ -27,3 +27,11 @@ def setup_gl_state():
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_LINE_SMOOTH)
     glEnable(GL_DEPTH_TEST)
+
+
+def mouse_callback(camera, window, xpos, ypos):
+    camera.process_mouse(xpos, ypos)
+
+
+def framebuffer_size_callback(window, w, h):
+    glViewport(0, 0, w, h)
