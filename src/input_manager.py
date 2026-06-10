@@ -1,7 +1,6 @@
 """InputManager: roteia eventos de tecla para callbacks específicos.
 
-Usado para amarrar uma tecla a uma transformação de UM objeto específico
-(req. 7: cada transformação ligada a um modelo distinto).
+Usado para associar uma tecla a uma transformação de UM objeto específico na cena final
 """
 import glfw
 

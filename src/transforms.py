@@ -1,7 +1,6 @@
 """Funções puras para gerar matrizes Model, View e Projection.
 
-Não há estado aqui — apenas matemática. Por isso ficam como funções soltas
-em vez de métodos de uma classe.
+Este é outro módulo composto apenas de funções auxiliares
 """
 import math
 

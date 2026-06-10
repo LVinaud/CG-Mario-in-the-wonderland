@@ -1,7 +1,6 @@
-"""Câmera em primeira pessoa, padrão idêntico ao da Aula 13 do professor.
+"""Câmera em primeira pessoa com movimento e rotação livre pela cena.
 
-Sem cache de `right`, sem `_update_camera_vectors`: o vetor up é constante
-(0, 1, 0); o `right` é recomputado on-the-fly no strafe via `cross(front, up)`.
+Nela também se aplica a lógica de colisão com o skybox, gerando uma "parede invisível" na cena.
 """
 import glm
 
@@ -22,8 +21,6 @@ class Camera:
         self.bounds_min = None
         self.bounds_max = None
 
-        # firstMouse / lastX / lastY — mesma nomenclatura usada pelo prof
-        # no notebook da Aula 13.
         self._first_mouse = True
         self._last_x = 0.0
         self._last_y = 0.0
@@ -33,6 +30,10 @@ class Camera:
         self.bounds_max = glm.vec3(*vmax)
 
     def _clamp(self):
+        """
+        Auxiliar que impede a câmera de passar dos limites estabelecidos em bounds_min e boundds_max
+        """
+
         if self.bounds_min is None or self.bounds_max is None:
             return
         self.position.x = max(self.bounds_min.x, min(self.bounds_max.x, self.position.x))
@@ -56,7 +57,7 @@ class Camera:
         self._clamp()
 
     def process_mouse(self, xpos, ypos):
-        """Mesma lógica do mouse_callback do notebook do prof (Aula 13)."""
+        """Processamento da lógica de callbacks de inputs dentro da câmera"""
         if self._first_mouse:
             self._last_x = xpos
             self._last_y = ypos
