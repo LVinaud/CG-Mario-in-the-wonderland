@@ -1,4 +1,4 @@
-# rodar com python -m src.main
+"""Entry point. Rodar a partir da raiz do projeto:  python -m src.main"""
 import functools
 import os
 
@@ -25,7 +25,7 @@ WIDTH, HEIGHT = 1280, 720
 TITLE = "Mario in the Wonderland"
 
 # Passo de edição por quadro (enquanto a tecla está pressionada).
-_T = 0.1   # translação (unidades)
+_T = 0.25   # translação (unidades)
 _R = 1.0    # rotação (graus)
 _S = 1.02   # escala (fator multiplicativo)
 
@@ -36,7 +36,7 @@ def _sel(state):
 
 
 def _scale_y(obj, factor):
-    """Escala apenas o eixo Y"""
+    """Escala apenas o eixo Y (req. 7 — escala em UM eixo só)."""
     obj.scale[1] *= factor
 
 

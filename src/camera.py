@@ -15,7 +15,7 @@ class Camera:
         self.pitch = 0.0
         self.fov = 45.0
 
-        self.speed = 100.0
+        self.speed = 500.0
         self.sensitivity = 0.1
 
         self.bounds_min = None
