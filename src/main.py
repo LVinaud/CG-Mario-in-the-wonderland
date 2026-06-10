@@ -41,7 +41,7 @@ def key_callback(camera, input_mgr, scene: Scene, window, key, scancode, action,
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         # Só persiste se estiver em modo edit
         # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
-        if scene.state["mode"] == "edit":
+        if scene.mode == "edit":
             scene.scene_editor.save_layout(camera)
         else:
             print("[modo viz] alterações não salvas (use modo edit para salvar)")
@@ -50,19 +50,17 @@ def key_callback(camera, input_mgr, scene: Scene, window, key, scancode, action,
 
     # P - Ativa o modo poligonal
     if key == glfw.KEY_P and action == glfw.PRESS:
-        scene.state["polygonal_mode"] = not scene.state["polygonal_mode"]
+        scene.is_at_polygonal_mode = not scene.is_at_polygonal_mode
         return
 
     # T - alterna entre modo viz e modo edit
     if key == glfw.KEY_T and action == glfw.PRESS:
-        scene.state["mode"] = "edit" if scene.state["mode"] == "viz" else "viz"
-        print(f"[modo] {scene.state['mode']}")
+        scene.mode = "edit" if scene.mode == "viz" else "viz"
+        print(f"[modo] {scene.mode}")
         return
 
     # TAB / SHIFT+TAB. Só funciona no modo edit
-    if key == glfw.KEY_TAB and action == glfw.PRESS and scene.state["mode"] == "edit":
-        #objs = scene.state["editor_objects"]
-
+    if key == glfw.KEY_TAB and action == glfw.PRESS and scene.mode == "edit":
         # Se shift, volta para o objeto anterior
         if mods & glfw.MOD_SHIFT:
             scene.scene_editor.set_previous_object_to_edit()
@@ -235,34 +233,34 @@ def main():
 
     # Bindings com chaveamento por modo
     def _up():
-        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(0,  _T, 0)
+        if scene.mode == "edit": scene.scene_editor.get_editing_object().translate(0,  _T, 0)
         else:                       boo_movable.translate(0, 0, -_T)
     def _down():
-        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(0, -_T, 0)
+        if scene.mode == "edit": scene.scene_editor.get_editing_object().translate(0, -_T, 0)
         else:                       boo_movable.translate(0, 0,  _T)
     def _left():
-        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate(-_T, 0, 0)
+        if scene.mode == "edit": scene.scene_editor.get_editing_object().translate(-_T, 0, 0)
         else:                       boo_movable.translate(-_T, 0, 0)
     def _right():
-        if scene.state["mode"] == "edit": scene.scene_editor.get_editing_object().translate( _T, 0, 0)
+        if scene.mode == "edit": scene.scene_editor.get_editing_object().translate( _T, 0, 0)
         else:                       boo_movable.translate( _T, 0, 0)
 
     input_mgr.on_hold(glfw.KEY_UP,        _up)
     input_mgr.on_hold(glfw.KEY_DOWN,      _down)
     input_mgr.on_hold(glfw.KEY_LEFT,      _left)
     input_mgr.on_hold(glfw.KEY_RIGHT,     _right)
-    input_mgr.on_hold(glfw.KEY_Z,         lambda: scene.state["mode"] == "viz" and estrela.rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_X,         lambda: scene.state["mode"] == "viz" and estrela.rotate( _R))
-    input_mgr.on_hold(glfw.KEY_N,         lambda: scene.state["mode"] == "viz" and _scale_y(pipe3, 1.0 / _S))
-    input_mgr.on_hold(glfw.KEY_M,         lambda: scene.state["mode"] == "viz" and _scale_y(pipe3, _S))
+    input_mgr.on_hold(glfw.KEY_Z,         lambda: scene.mode == "viz" and estrela.rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_X,         lambda: scene.mode == "viz" and estrela.rotate( _R))
+    input_mgr.on_hold(glfw.KEY_N,         lambda: scene.mode == "viz" and _scale_y(pipe3, 1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_M,         lambda: scene.mode == "viz" and _scale_y(pipe3, _S))
 
     # Bindings exclusivos do modo edit (teclas sem conflito com a câmera)
-    input_mgr.on_hold(glfw.KEY_G,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().translate(0, 0, -_T))
-    input_mgr.on_hold(glfw.KEY_H,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().translate(0, 0,  _T))
-    input_mgr.on_hold(glfw.KEY_R,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().rotate( _R))
-    input_mgr.on_hold(glfw.KEY_F,         lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().rotate(-_R))
-    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().scale_by(_S))
-    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: scene.state["mode"] == "edit" and scene.scene_editor.get_editing_object().scale_by(1.0 / _S))
+    input_mgr.on_hold(glfw.KEY_G,         lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().translate(0, 0, -_T))
+    input_mgr.on_hold(glfw.KEY_H,         lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().translate(0, 0,  _T))
+    input_mgr.on_hold(glfw.KEY_R,         lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().rotate( _R))
+    input_mgr.on_hold(glfw.KEY_F,         lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().rotate(-_R))
+    input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().scale_by(_S))
+    input_mgr.on_hold(glfw.KEY_MINUS,     lambda: scene.mode == "edit" and scene.scene_editor.get_editing_object().scale_by(1.0 / _S))
 
 
 
@@ -275,27 +273,27 @@ def main():
 
     while not glfw.window_should_close(window):
         current_frame = glfw.get_time()
-        scene.state["delta_time"] = current_frame - scene.state["last_frame"]
-        scene.state["last_frame"] = current_frame
+        scene.delta_time = current_frame - scene.last_frame
+        scene.last_frame = current_frame
 
         glfw.poll_events()
 
         glClearColor(0.1, 0.1, 0.15, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if scene.state["polygonal_mode"] else GL_FILL)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if scene.is_at_polygonal_mode else GL_FILL)
 
         view_mat = make_view(camera.position, camera.front, camera.up)
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
 
 
         for coin in coins:
-            coin.rotate(90.0 * scene.state["delta_time"])
+            coin.rotate(90.0 * scene.delta_time)
 
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view_mat)
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_TRUE, proj_mat)
 
-        camera.update(scene.state["delta_time"])
+        camera.update(scene.delta_time)
         scene.draw(program)
 
         glfw.swap_buffers(window)

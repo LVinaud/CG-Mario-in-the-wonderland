@@ -10,13 +10,14 @@ class Scene:
 
         self.scene_editor = SceneEditor()
 
-        # Dicionaário que gerencia o estado da cena
-        self.state = {
-            "polygonal_mode": False,
-            "delta_time": 0.0,
-            "last_frame": 0.0,
-            "mode": "viz",  # Garante que a cena comece no modo de visualização
-        }
+        # Atributos para a gerência do estado da cena
+        self.is_at_polygonal_mode = False
+        self.mode = "viz"
+
+        # Atributos para calculos com framerate
+        self.delta_time = 0.0
+        self.last_frame = 0.0
+
 
     def add(self, obj):
         self.objects.append(obj)
