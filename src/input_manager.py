@@ -11,12 +11,18 @@ class InputManager:
         self._on_hold = {}    # Para ações disparadas em PRESS e em REPEAT (segurar tecla)
 
     def on_press(self, key, callback):
+        """Registra um callback de tecla no dicionário de ações que ocorrem uma vez por pressionamento"""
+
         self._on_press[key] = callback
 
     def on_hold(self, key, callback):
+        """Registra um callback de tecla no dicionário de ações que ocorrem uma vez por pressionamento"""
+
         self._on_hold[key] = callback
 
     def dispatch(self, key, action):
+        """Recebe a tecla clicada e o tipo de ação do GLFW pela função callback da window e chama a função registrada exata"""
+
         if action == glfw.PRESS:
             if key in self._on_press:
                 self._on_press[key]()

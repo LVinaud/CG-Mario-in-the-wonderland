@@ -7,16 +7,23 @@ import glm
 
 class Camera:
     def __init__(self, position, front=(0.0, 0.0, -1.0), up=(0.0, 1.0, 0.0)):
+        # Vetores para a geração da matriz projection
         self.position = glm.vec3(*position)
         self.front = glm.vec3(*front)
         self.up = glm.vec3(*up)
 
+        # Atributos para o movimento de câmera
         self.yaw = -90.0
         self.pitch = 0.0
         self.fov = 45.0
-
-        self.speed = 500.0
         self.sensitivity = 0.1
+
+        # Atributos para o movimento
+        self.speed = 25.0
+        self.is_moving_forward = False
+        self.is_moving_backward = False
+        self.is_moving_left = False
+        self.is_moving_right = False
 
         self.bounds_min = None
         self.bounds_max = None
@@ -40,21 +47,23 @@ class Camera:
         self.position.y = max(self.bounds_min.y, min(self.bounds_max.y, self.position.y))
         self.position.z = max(self.bounds_min.z, min(self.bounds_max.z, self.position.z))
 
-    def move_forward(self, dt):
-        self.position += self.speed * dt * self.front
+
+    def update(self, dt):
+        """Calcula melhores movimentos de câmera"""
+
+        # Atualizando de acordo com o estado de cada movimento no frame
+        if self.is_moving_forward:
+            self.position += self.speed * dt * self.front
+        if self.is_moving_backward:
+            self.position -= self.speed * dt * self.front
+        if self.is_moving_left:
+            self.position -= glm.normalize(glm.cross(self.front, self.up)) * self.speed * dt
+        if self.is_moving_right:
+            self.position += glm.normalize(glm.cross(self.front, self.up)) * self.speed * dt
+
+        # Garantindo que ela não saiu das bordas
         self._clamp()
 
-    def move_backward(self, dt):
-        self.position -= self.speed * dt * self.front
-        self._clamp()
-
-    def move_left(self, dt):
-        self.position -= glm.normalize(glm.cross(self.front, self.up)) * self.speed * dt
-        self._clamp()
-
-    def move_right(self, dt):
-        self.position += glm.normalize(glm.cross(self.front, self.up)) * self.speed * dt
-        self._clamp()
 
     def process_mouse(self, xpos, ypos):
         """Processamento da lógica de callbacks de inputs dentro da câmera"""

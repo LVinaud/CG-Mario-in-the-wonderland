@@ -35,11 +35,14 @@ def _sel(state):
 
 
 def _scale_y(obj, factor):
-    """Escala apenas o eixo Y (req. 7 — escala em UM eixo só)."""
+    """Escala apenas o eixo Y. Função usada para escalar um dos canos externos da cena"""
     obj.scale[1] *= factor
 
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
+    """Callback dos inputs da Window GFLW para a lógica interna do código"""
+
+    # Configurando as ações na edição ao fechar a cena com ESC
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         # Só persiste se estiver em modo edit
         # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
@@ -50,11 +53,12 @@ def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
         glfw.set_window_should_close(window, True)
         return
 
+    # P - Ativa o modo poligonal
     if key == glfw.KEY_P and action == glfw.PRESS:
         state["polygonal_mode"] = not state["polygonal_mode"]
         return
 
-    # T — alterna entre modo viz e modo edit
+    # T - alterna entre modo viz e modo edit
     if key == glfw.KEY_T and action == glfw.PRESS:
         state["mode"] = "edit" if state["mode"] == "viz" else "viz"
         print(f"[modo] {state['mode']}")
@@ -69,20 +73,22 @@ def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
         print(f"[editor] Selecionado: {name}  (TAB = próximo, SHIFT+TAB = anterior)")
         return
 
-    if action in (glfw.PRESS, glfw.REPEAT):
-        dt = state["delta_time"]
-        # Câmera — WASD
+    # WASD - Movimento de câmera
+    if action in (glfw.PRESS, glfw.RELEASE):
+        is_pressed = action == glfw.PRESS
+
+        # Configura a camera para mexer no frame caso is_pressed seja verdadeiro
         if key == glfw.KEY_W:
-            camera.move_forward(dt)
+            camera.is_moving_forward = is_pressed
             return
         if key == glfw.KEY_S:
-            camera.move_backward(dt)
+            camera.is_moving_backward = is_pressed
             return
         if key == glfw.KEY_A:
-            camera.move_left(dt)
+            camera.is_moving_left = is_pressed
             return
         if key == glfw.KEY_D:
-            camera.move_right(dt)
+            camera.is_moving_right = is_pressed
             return
 
     input_mgr.dispatch(key, action)
@@ -292,6 +298,7 @@ def main():
     def _right():
         if state["mode"] == "edit": _sel(state).translate( _T, 0, 0)
         else:                       boo.translate( _T, 0, 0)
+
     input_mgr.on_hold(glfw.KEY_UP,        _up)
     input_mgr.on_hold(glfw.KEY_DOWN,      _down)
     input_mgr.on_hold(glfw.KEY_LEFT,      _left)
@@ -309,6 +316,7 @@ def main():
     input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: state["mode"] == "edit" and _sel(state).scale_by(_S))
     input_mgr.on_hold(glfw.KEY_MINUS,     lambda: state["mode"] == "edit" and _sel(state).scale_by(1.0 / _S))
 
+    # Configurando os limites físicos da câmera (considerando o skybox)
     camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
 
     glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, state))
@@ -332,6 +340,8 @@ def main():
 
         view_mat = make_view(camera.position, camera.front, camera.up)
         proj_mat = make_projection(camera.fov, WIDTH / HEIGHT)
+
+        camera.update(state["delta_time"])
 
         for coin in coins:
             coin.rotate(90.0 * state["delta_time"])
