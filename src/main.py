@@ -1,4 +1,4 @@
-"""Entry point. Rodar a partir da raiz do projeto:  python -m src.main"""
+# rodar com python -m src.main
 import functools
 import os
 
@@ -25,7 +25,7 @@ WIDTH, HEIGHT = 1280, 720
 TITLE = "Mario in the Wonderland"
 
 # Passo de edição por quadro (enquanto a tecla está pressionada).
-_T = 0.25   # translação (unidades)
+_T = 0.1   # translação (unidades)
 _R = 1.0    # rotação (graus)
 _S = 1.02   # escala (fator multiplicativo)
 
@@ -36,13 +36,13 @@ def _sel(state):
 
 
 def _scale_y(obj, factor):
-    """Escala apenas o eixo Y (req. 7 — escala em UM eixo só)."""
+    """Escala apenas o eixo Y"""
     obj.scale[1] *= factor
 
 
 def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
-        # Só persiste se estiver em modo edit — assim a demonstração da req. 7
+        # Só persiste se estiver em modo edit
         # (mover boo, rotacionar estrela, etc.) não sobrescreve o layout salvo.
         if state["mode"] == "edit":
             save_layout(state["editor_objects"], camera)
