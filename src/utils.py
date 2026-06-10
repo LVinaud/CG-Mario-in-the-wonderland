@@ -138,3 +138,34 @@ def create_scene_binds(scene: Scene):
         glfw.KEY_RIGHT,
         scene.scene_editor.move_editing_obj_plus_x
     )
+
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_1,
+        scene.scene_editor.decrease_k_diffuse_obj
+    )
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_2,
+        scene.scene_editor.increase_k_diffuse_obj
+    )
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_3,
+        scene.scene_editor.decrease_k_specular_obj
+    )
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_4,
+        scene.scene_editor.increase_k_specular_obj
+    )
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_5,
+        scene.scene_editor.decrease_shininess_obj
+    )
+    scene.input_mngr.on_press(
+        MODE_EDIT,
+        glfw.KEY_6,
+        scene.scene_editor.increase_shininess_obj
+    )

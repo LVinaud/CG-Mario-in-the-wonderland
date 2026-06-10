@@ -13,10 +13,12 @@ LAYOUT_PATH = os.path.join(
 _T = 0.25   # translação (unidades)
 _R = 1.0    # rotação (graus)
 _S = 1.02   # escala (fator multiplicativo)
+_K_LIGHT_PARAMS = 0.1
+_SHININESS = 1.0
 
 class SceneEditor():
     def __init__(self):
-        self._named_objects = []
+        self._named_objects = []  # Lista com
         self.curr_edit_idx = 0
 
     # Metodos para manipular a estrutura de dados interna
@@ -52,14 +54,22 @@ class SceneEditor():
         """Aplica posições salvas nos objetos e, opcionalmente, restaura a câmera."""
         if not os.path.exists(LAYOUT_PATH):
             return
+
+        # Carregando o arquivo
         with open(LAYOUT_PATH) as f:
             data = json.load(f)
+
+        # Passando os dados salvos para o objeto na memória
         for name, obj in self._named_objects:
             if name in data:
                 d = data[name]
                 obj.position = d["position"]
                 obj.rotation_angle = d["rotation_angle"]
                 obj.scale = d["scale"]
+                obj.k_diffuse = d["k_diffuse"]
+                obj.k_specular = d["k_specular"]
+                obj.shininess = d["shininess"]
+
         if camera is not None and "_camera" in data:
             c = data["_camera"]
             camera.position.x, camera.position.y, camera.position.z = c["position"]
@@ -83,6 +93,9 @@ class SceneEditor():
                 "position": obj.position,
                 "rotation_angle": obj.rotation_angle,
                 "scale": obj.scale,
+                "k_diffuse": obj.k_diffuse,
+                "k_specular": obj.k_specular,
+                "shininess": obj.shininess
             }
         if camera is not None:
             data["_camera"] = {
@@ -95,7 +108,7 @@ class SceneEditor():
         print(f"[editor] Layout salvo em {LAYOUT_PATH}")
 
 
-    # Métodos para a edição
+    # Métodos para a edição das posições
     def move_editing_obj_plus_y(self):
         self.get_editing_object().translate(0,  _T, 0)
 
@@ -114,6 +127,7 @@ class SceneEditor():
     def move_editing_obj_plus_z(self):
         self.get_editing_object().translate(0, 0,  _T)
 
+    # Métodos para a edição de rotação e escala
     def rotate_editing_obj_clockwise(self):
         self.get_editing_object().rotate( _R)
 
@@ -125,3 +139,29 @@ class SceneEditor():
 
     def scale_down_editing_obj(self):
         self.get_editing_object().scale_by(1.0 / _S)
+
+
+    # Métodos para a edição de parametros de luz
+    def increase_k_specular_obj(self):
+        if self.get_editing_object().k_specular < 1.0:
+            self.get_editing_object().k_specular += _K_LIGHT_PARAMS
+
+    def decrease_k_specular_obj(self):
+        if self.get_editing_object().k_specular > 0.0:
+            self.get_editing_object().k_specular -= _K_LIGHT_PARAMS
+
+    def increase_k_diffuse_obj(self):
+        if self.get_editing_object().k_diffuse < 1.0:
+            self.get_editing_object().k_specular += _K_LIGHT_PARAMS
+
+    def decrease_k_diffuse_obj(self):
+        if self.get_editing_object().k_diffuse > 0.0:
+            self.get_editing_object().k_specular -= _K_LIGHT_PARAMS
+
+    def increase_shininess_obj(self):
+        if self.get_editing_object().shininess < 128.0:
+            self.get_editing_object().shininess += _SHININESS
+
+    def decrease_shininess_obj(self):
+        if self.get_editing_object().shininess > 0.0:
+            self.get_editing_object().shininess -= _SHININESS

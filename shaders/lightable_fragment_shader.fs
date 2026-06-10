@@ -14,6 +14,14 @@ struct Light {
     float is_on; // 1.0 se ligada, 0.0 se desligada
 };
 
+// Estrutura para configurar os niveis de refração e brilho do fragmento
+struct Material {
+    float k_diffuse;            // Refletir luz difusa (de 0.0 a 1.0)
+    float k_specular;           // Refletir luz de brilho especular (0.0 a 1.0)
+    float shininess;            // Concentração do brilho no framento 4.0 a 128.0)
+};
+uniform Material material;
+
 #define NR__LIGHTS 3
 
 uniform Light lights[NR__LIGHTS]; // 0 e 1: Internas, 2: Externa
@@ -54,14 +62,14 @@ void main(){
         // Calculando a luz especular final com o modelo de Phong
         // O número '32.0' é o brilho (shininess). Quanto maior, mais concentrado o brilho.
         vec3 reflect_dir = reflect(-light_dir, normal);
-        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
+        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
         vec3 specular = spec * lights[i].color;
         total_specular += specular;
     }
 
     // Aplica os modificadores globais sobre as reflexões
-    total_diffuse *= global_diffuse_factor;
-    total_specular *= global_specular_factor;
+    total_diffuse *= global_diffuse_factor * material.k_diffuse;
+    total_specular *= global_specular_factor * material.k_specular;
 
     // Cor final: luz ambiente + difusa + especular sobre a cor de textura do fragmento
     vec3 final_color = ambient + (total_diffuse * tex_color.rgb) + total_specular;
