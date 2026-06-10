@@ -8,9 +8,9 @@ from src.camera import Camera
 from src.gl_setup import init_window, setup_gl_state
 from src.graphic_object import ObjetoGrafico
 from src.input_manager import InputManager
+from src.scene_editor import SceneEditor
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
-from src.scene_editor import load_layout, save_layout
 from src.shader import Shader
 from src.skybox import Skybox
 from src.transforms import make_projection, make_view
@@ -39,7 +39,7 @@ def _scale_y(obj, factor):
     obj.scale[1] *= factor
 
 
-def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
+def key_callback(camera, input_mgr, scene_editor, state, window, key, scancode, action, mods):
     """Callback dos inputs da Window GFLW para a lógica interna do código"""
 
     # Configurando as ações na edição ao fechar a cena com ESC
@@ -47,7 +47,7 @@ def key_callback(camera, input_mgr, state, window, key, scancode, action, mods):
         # Só persiste se estiver em modo edit
         # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
         if state["mode"] == "edit":
-            save_layout(state["editor_objects"], camera)
+            scene_editor.save_layout(camera)
         else:
             print("[modo viz] alterações não salvas (use modo edit para salvar)")
         glfw.set_window_should_close(window, True)
@@ -101,23 +101,48 @@ def mouse_callback(camera, window, xpos, ypos):
 def framebuffer_size_callback(window, w, h):
     glViewport(0, 0, w, h)
 
+def _generate_obj_paths(obj_name):
+    """
+    Auxiliar que gera o caminho o para um objeto dado a string do seu nome de registro.
+    Retorna o caminho para o .obj e para o arquivo de textura respectivamente
+    """
 
-def _add_model(registry, scene, obj_path, tex_path, **kwargs):
+    folder_name = obj_name + "64/"
+    obj_file_name = folder_name + obj_name +"64.obj"
+    tex_file_name = folder_name + obj_name + "64_tex.png"
+
+    return obj_file_name, tex_file_name
+
+def _add_model(registry, scene, scene_editor, obj_name, instance_idx=0):
     """Auxiliar para registrar mesh, criar ObjetoGrafico e adicionar à cena. Retornando o objeto."""
+
+    # Criando os caminhos para os arquivos
+    obj_path, tex_path = _generate_obj_paths(obj_name)
+
+    # Carregando em Registry
     handle = registry.register(
         os.path.join(ASSETS_DIR, obj_path),
         [os.path.join(ASSETS_DIR, tex_path)],
     )
-    obj = ObjetoGrafico(mesh_handle=handle, **kwargs)
+
+    # Adcionando referencia as estruturas de controle do código
+    obj = ObjetoGrafico(mesh_handle=handle)
     scene.add(obj)
+
+    # Adcionando no editor com o nome correto
+    if instance_idx > 0:
+        scene_editor.add_object(obj_name+str(instance_idx), obj)
+    else:
+        scene_editor.add_object(obj_name, obj)
     return obj
 
 
 def main():
     window = init_window(WIDTH, HEIGHT, TITLE)
-    setup_gl_state()
 
     # Inicialicando o OpenGl e os Objetos Singletons
+    setup_gl_state()
+
     shader = Shader(
         os.path.join(SHADER_DIR, "vertex_shader.vs"),
         os.path.join(SHADER_DIR, "fragment_shader.fs"),
@@ -126,9 +151,10 @@ def main():
     program = shader.get_program()
 
     registry = MeshRegistry()
+    input_mgr = InputManager()
     camera = Camera(position=(0.0, 2.0, 3.0))
     scene = Scene(camera=camera)
-    input_mgr = InputManager()
+    scene_editor = SceneEditor()
 
     # Configurando o skybox
     skybox_h = registry.register(
@@ -137,136 +163,62 @@ def main():
     )
     scene.skybox = Skybox(skybox_h, scale=1.0)
 
+    # Configurando os limites físicos da câmera (considerando o skybox)
+    camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
+
+
     # Carregando objetos do ambiente interno (sala do castelo)
-    castleroom = _add_model(registry, scene, "castleroom64/castleroom64.obj",
-                            "castleroom64/castleroom64_tex.png",
-                            position=(0.0, 0.0, 0.0))
+    _add_model(registry, scene, scene_editor, "castleroom")
+    _add_model(registry, scene, scene_editor, "chao")
+    _add_model(registry, scene, scene_editor, "torch", 1)
+    _add_model(registry, scene, scene_editor, "torch", 2)
+    _add_model(registry, scene, scene_editor, "quadro")
 
-    quadro = _add_model(registry, scene, "quadro64/quadro64.obj",
-                        "quadro64/quadro64_tex.png",
-                        position=(0.0, 2.0, -4.0))
+    # Carregando objetos que são personagens no ambiente interno
+    _add_model(registry, scene, scene_editor, "toad")
+    _add_model(registry, scene, scene_editor, "mario")
+    _add_model(registry, scene, scene_editor, "porta")
 
-    torch1 = _add_model(registry, scene, "torch64/torch64.obj",
-                        "torch64/torch64_tex.png",
-                        position=(-3.0, 1.5, -4.0))
-    torch2 = _add_model(registry, scene, "torch64/torch64.obj",
-                        "torch64/torch64_tex.png",
-                        position=(3.0, 1.5, -4.0))
+    # Carregando objetos do ambiente externo
+    _add_model(registry, scene, scene_editor, "pipe", 1)
+    _add_model(registry, scene, scene_editor, "pipe", 2)
+    _add_model(registry, scene, scene_editor, "plataforma", 1)
+    _add_model(registry, scene, scene_editor, "plataforma", 2)
+    estrela = _add_model(registry, scene, scene_editor, "estrela")
 
-    toad = _add_model(registry, scene, "toad64/toad64.obj",
-                      "toad64/toad64_tex.png",
-                      position=(-3.0, 0.0, 0.5))
+    # Lista de fantasmas :)
+    boos = []
+    for i in range(4):
+        boo = _add_model(registry, scene, scene_editor, "boo", i+1)
+        boos.append(boo)
 
-    # Carregando objetos do ambiente externo (fase do Mário)
-    chao = _add_model(registry, scene, "chao64/chao64.obj",
-                      "chao64/char64_tex.png",
-                      position=(0.0, 0.0, -20.0))
-
-    boo = _add_model(registry, scene, "boo64/boo64.obj",
-                     "boo64/boo64_tex.png",
-                     position=(-3.0, 2.0, -18.0))
-
-    pipe = _add_model(registry, scene, "pipe64/pipe64.obj",
-                      "pipe64/pipe64_tex.png",
-                      position=(5.0, 0.0, -22.0))
-    pipe2 = _add_model(registry, scene, "pipe64/pipe64.obj",
-                       "pipe64/pipe64_tex.png",
-                       position=(-5.0, 0.0, -22.0))
-    pipe3 = _add_model(registry, scene, "pipe64/pipe64.obj",
-                       "pipe64/pipe64_tex.png",
-                       position=(0.0, 0.0, -25.0))
-
-    mario = _add_model(registry, scene, "mario64/mario64.obj",
-                       "mario64/mario64_tex.png",
-                       position=(0.0, 0.0, -15.0))
-
-    estrela = _add_model(registry, scene, "estrela/estrela.obj",
-                         "estrela/estrela.png",
-                         position=(3.0, 2.0, -15.0),
-                         rotation_axis=(0, 1, 0))
-
-    arvore = _add_model(registry, scene, "arvore64/arvore64.obj",
-                        "arvore64/arvore64_tex.png",
-                        position=(-5.0, 0.0, -22.0))
-
-    plataforma1 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
-                             "plataforma64/plataforma64_tex.png",
-                             position=(3.0, 0.0, -20.0))
-    plataforma2 = _add_model(registry, scene, "plataforma64/plataforma64.obj",
-                             "plataforma64/plataforma64_tex.png",
-                             position=(-3.0, 0.0, -20.0))
-
-    boo2 = _add_model(registry, scene, "boo64/boo64.obj",
-                      "boo64/boo64_tex.png",
-                      position=(3.0, 2.0, -20.0))
-    boo3 = _add_model(registry, scene, "boo64/boo64.obj",
-                      "boo64/boo64_tex.png",
-                      position=(-3.0, 2.0, -20.0))
-    boo4 = _add_model(registry, scene, "boo64/boo64.obj",
-                      "boo64/boo64_tex.png",
-                      position=(0.0, 2.0, -25.0))
-    boo5 = _add_model(registry, scene, "boo64/boo64.obj",
-                      "boo64/boo64_tex.png",
-                      position=(5.0, 2.0, -25.0))
-
-    porta = _add_model(registry, scene, "porta64/porta64.obj",
-                       "porta64/Inside_baseColor.png",
-                       position=(0.0, 0.0, -4.0))
-
-    # Carrregando as 16 moedas da fase. Todas giram continuamente no loop
+    # Lista de moedas. Todas giram continuamente no loop
     coins = []
     for i in range(16):
-        c = _add_model(registry, scene, "coin64/coin.obj",
-                       "coin64/coin.png",
-                       position=(float(i) * 2.0, 1.0, -18.0),
-                       rotation_axis=(0, 1, 0))
+        c = _add_model(registry, scene, scene_editor, "coin", i+1)
         coins.append(c)
 
-    # Carregando as 15 árvores que preenchem o cenário externo
+    # Lista de árvores
     trees = []
-    for i in range(15):
-        t = _add_model(registry, scene, "arvore64/arvore64.obj",
-                       "arvore64/arvore64_tex.png",
-                       position=(float(i) * 3.0, 0.0, -30.0))
+    for i in range(16):
+        t = _add_model(registry, scene, scene_editor, "arvore", i+1)
         trees.append(t)
+
+
+    boo_movable = _add_model(registry, scene, scene_editor, "boo") #especial
+    pipe3 = _add_model(registry, scene, scene_editor, "pipe", 3) #especial
 
     # Upload final de todos os objetos carregados na GPU
     registry.upload_to_gpu(program)
 
-    # Configurando o editor de cena
-    editor_objects = [
-        ("castleroom", castleroom),
-        ("quadro",     quadro),
-        ("torch1",     torch1),
-        ("torch2",     torch2),
-        ("toad",       toad),
-        ("chao",       chao),
-        ("boo",        boo),
-        ("pipe",       pipe),
-        ("pipe2",      pipe2),
-        ("pipe3",      pipe3),
-        ("mario",      mario),
-        ("estrela",    estrela),
-        ("arvore",     arvore),
-        ("plataforma1", plataforma1),
-        ("plataforma2", plataforma2),
-        ("boo2",        boo2),
-        ("boo3",        boo3),
-        ("boo4",        boo4),
-        ("boo5",        boo5),
-        ("porta",       porta),
-        *[(f"coin{i+1}",  coins[i])  for i in range(16)],
-        *[(f"arvore{i+2}", trees[i]) for i in range(15)],
-    ]
-
     # Aplica layout salvo anteriormente (se existir)
-    load_layout(editor_objects, camera)
+    scene_editor.load_layout(camera)
 
     state = {
         "polygonal_mode": False,
         "delta_time": 0.0,
         "last_frame": 0.0,
-        "editor_objects": editor_objects,
+        "editor_objects": scene_editor,
         "editor_idx": 0,
         "mode": "viz",  # Garante que a cena comece no modo de visualização
     }
@@ -288,16 +240,16 @@ def main():
     # Bindings com chaveamento por modo
     def _up():
         if state["mode"] == "edit": _sel(state).translate(0,  _T, 0)
-        else:                       boo.translate(0, 0, -_T)
+        else:                       boo_movable.translate(0, 0, -_T)
     def _down():
         if state["mode"] == "edit": _sel(state).translate(0, -_T, 0)
-        else:                       boo.translate(0, 0,  _T)
+        else:                       boo_movable.translate(0, 0,  _T)
     def _left():
         if state["mode"] == "edit": _sel(state).translate(-_T, 0, 0)
-        else:                       boo.translate(-_T, 0, 0)
+        else:                       boo_movable.translate(-_T, 0, 0)
     def _right():
         if state["mode"] == "edit": _sel(state).translate( _T, 0, 0)
-        else:                       boo.translate( _T, 0, 0)
+        else:                       boo_movable.translate( _T, 0, 0)
 
     input_mgr.on_hold(glfw.KEY_UP,        _up)
     input_mgr.on_hold(glfw.KEY_DOWN,      _down)
@@ -316,10 +268,9 @@ def main():
     input_mgr.on_hold(glfw.KEY_EQUAL,     lambda: state["mode"] == "edit" and _sel(state).scale_by(_S))
     input_mgr.on_hold(glfw.KEY_MINUS,     lambda: state["mode"] == "edit" and _sel(state).scale_by(1.0 / _S))
 
-    # Configurando os limites físicos da câmera (considerando o skybox)
-    camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
 
-    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, state))
+
+    glfw.set_key_callback(window, functools.partial(key_callback, camera, input_mgr, scene_editor, state))
     glfw.set_cursor_pos_callback(window, functools.partial(mouse_callback, camera))
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
 
