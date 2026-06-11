@@ -22,13 +22,14 @@ struct Material {
 };
 uniform Material material;
 
-#define NR__LIGHTS 3
+#define NR_LIGHTS 3
 
-uniform Light lights[NR__LIGHTS]; // 0 e 1: Internas, 2: Externa
+uniform Light lights[NR_LIGHTS]; // 0 e 1: Internas, 2: Externa
 
 // Constantes para controlar as intensidades da reflexão
 uniform float global_diffuse_factor;
 uniform float global_specular_factor;
+uniform float global_ambient_factor;
 
 void main(){
     vec4 tex_color = texture2D(imagem, out_texture);
@@ -47,7 +48,7 @@ void main(){
     vec3 total_specular = vec3(0.0);
 
     // Loop pelas N fontes de luz definidas
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < NR_LIGHTS; i++) {
         // Pular se a luz estiver desligada ou isolada pelo ambiente
         if (lights[i].is_on < 0.5) continue;
 
@@ -70,6 +71,7 @@ void main(){
     // Aplica os modificadores globais sobre as reflexões
     total_diffuse *= global_diffuse_factor * material.k_diffuse;
     total_specular *= global_specular_factor * material.k_specular;
+    ambient *= global_ambient_factor;
 
     // Cor final: luz ambiente + difusa + especular sobre a cor de textura do fragmento
     vec3 final_color = ambient + (total_diffuse * tex_color.rgb) + total_specular;

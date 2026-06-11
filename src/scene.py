@@ -18,7 +18,6 @@ class Scene:
         self.light_objects = []
         self.lights = []
 
-
         # Atributos para a gerência do estado da cena
         self.is_at_polygonal_mode = False
         self._mode = mode
@@ -30,6 +29,7 @@ class Scene:
         # Incremento e decremento dos fatores de reflexão pelo teclado
         self.diffuse_factor = 1.0
         self.specular_factor = 1.0
+        self.ambient_factor = 1.0
 
         # Atributos para calculos com framerate
         self.delta_time = 0.0
@@ -69,10 +69,10 @@ class Scene:
         self.specular_factor += _CHANGE_GLOBAL_SPECULAR
 
     def decrease_ambient_light(self):
-        self.diffuse_factor -= _CHANGE_GLOBAL_AMBIENT
+        self.ambient_factor -= _CHANGE_GLOBAL_AMBIENT
 
     def increase_ambient_light(self):
-        self.diffuse_factor += _CHANGE_GLOBAL_AMBIENT
+        self.ambient_factor += _CHANGE_GLOBAL_AMBIENT
 
     def draw(self, light_src_shader, lightable_shader, aspect_ratio, registry):
         """
@@ -119,6 +119,7 @@ class Scene:
         # Envia os fatores de incremento/decremento controlados via teclado
         glUniform1f(glGetUniformLocation(lightable_program, "global_diffuse_factor"), self.diffuse_factor)
         glUniform1f(glGetUniformLocation(lightable_program, "global_specular_factor"), self.specular_factor)
+        glUniform1f(glGetUniformLocation(lightable_program, "global_ambient_factor"), self.ambient_factor)
 
         # Injeta as luzes no shader
         for i, light in enumerate(self.lights):

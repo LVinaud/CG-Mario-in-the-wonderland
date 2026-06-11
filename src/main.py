@@ -42,11 +42,11 @@ def key_callback(camera, scene: Scene, window, key, scancode, action, mods):
 
     # E - Alterna para o modo de edição
     if key == glfw.KEY_E and action == glfw.PRESS:
-        scene.set_mode(MODES["viz"])
+        scene.set_mode(MODES["edit"])
         return
     # V - Alterna para o modo de visualização
     if key == glfw.KEY_V and action == glfw.PRESS:
-         scene.set_mode(MODES["edit"])
+         scene.set_mode(MODES["viz"])
          return
     # L - Alterna para o modo de luz
     if key == glfw.KEY_L and action == glfw.PRESS:
