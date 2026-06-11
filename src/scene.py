@@ -18,7 +18,6 @@ class Scene:
         self.light_objects = []
         self.lights = []
 
-
         # Atributos para a gerência do estado da cena
         self.is_at_polygonal_mode = False
         self._mode = mode
@@ -30,6 +29,7 @@ class Scene:
         # Incremento e decremento dos fatores de reflexão pelo teclado
         self.diffuse_factor = 1.0
         self.specular_factor = 1.0
+        self.ambient_factor = 0.6
 
         # Atributos para calculos com framerate
         self.delta_time = 0.0
@@ -57,22 +57,28 @@ class Scene:
 
 
     def decrease_diffuse_factor(self):
-        self.diffuse_factor -= _CHANGE_GLOBAL_DIFFUSE
+        if self.diffuse_factor > 0.0:
+            self.diffuse_factor -= _CHANGE_GLOBAL_DIFFUSE
 
     def increase_diffuse_factor(self):
-        self.diffuse_factor += _CHANGE_GLOBAL_DIFFUSE
+        if self.diffuse_factor < 1.0:
+            self.diffuse_factor += _CHANGE_GLOBAL_DIFFUSE
 
     def decrease_specular_factor(self):
-        self.specular_factor -= _CHANGE_GLOBAL_SPECULAR
+        if self.specular_factor > 0.0:
+            self.specular_factor -= _CHANGE_GLOBAL_SPECULAR
 
     def increase_specular_factor(self):
-        self.specular_factor += _CHANGE_GLOBAL_SPECULAR
+        if self.specular_factor < 1.0:
+            self.specular_factor += _CHANGE_GLOBAL_SPECULAR
 
     def decrease_ambient_light(self):
-        self.diffuse_factor -= _CHANGE_GLOBAL_AMBIENT
+        if self.ambient_factor > 0.0:
+            self.ambient_factor -= _CHANGE_GLOBAL_AMBIENT
 
     def increase_ambient_light(self):
-        self.diffuse_factor += _CHANGE_GLOBAL_AMBIENT
+        if self.ambient_factor < 1.0:
+            self.ambient_factor += _CHANGE_GLOBAL_AMBIENT
 
     def draw(self, light_src_shader, lightable_shader, aspect_ratio, registry):
         """
@@ -88,8 +94,15 @@ class Scene:
         proj_mat = make_projection(self.camera.fov, aspect_ratio)
 
         # Reativação da lógica de detecção de ambiente para alimentar a classe Light
-        # (Ajuste os valores -15.0 e 15.0 se a sua castleroom for maior/menor)
-        is_camera_inside = (-15.0 < self.camera.position[0] < 15.0) and (-15.0 < self.camera.position[2] < 15.0)
+        # Baseado nas transformações do castleroom
+        # Centro X: -17.45, Centro Z: 26.75, Escala aproximada: ~29.55
+        min_x, max_x = -32.22, -2.68
+        min_z, max_z = 11.98, 41.52
+        min_y, max_y = -0.5, 15.50
+
+        is_camera_inside = (min_x <= self.camera.position[0] <= max_x) and \
+                            (min_y <= self.camera.position[1] <= max_y) and \
+                            (min_z <= self.camera.position[2] <= max_z)
 
         # Renderizando os objetos que emitem luz
         light_src_shader.use()
@@ -119,6 +132,7 @@ class Scene:
         # Envia os fatores de incremento/decremento controlados via teclado
         glUniform1f(glGetUniformLocation(lightable_program, "global_diffuse_factor"), self.diffuse_factor)
         glUniform1f(glGetUniformLocation(lightable_program, "global_specular_factor"), self.specular_factor)
+        glUniform1f(glGetUniformLocation(lightable_program, "global_ambient_factor"), self.ambient_factor)
 
         # Injeta as luzes no shader
         for i, light in enumerate(self.lights):

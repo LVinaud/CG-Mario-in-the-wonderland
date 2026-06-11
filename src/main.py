@@ -2,6 +2,7 @@
 import functools
 import os
 
+import math
 import glfw
 from OpenGL.GL import *
 
@@ -15,12 +16,7 @@ from src.scene import Scene
 from src.shader import Shader
 from src.skybox import Skybox
 from src.transforms import make_projection, make_view
-
-
-def _scale_y(obj, factor):
-    """Escala apenas o eixo Y. Função usada para escalar um dos canos externos da cena"""
-    obj.scale[1] *= factor
-
+from src.movements import *
 
 def key_callback(camera, scene: Scene, window, key, scancode, action, mods):
     """Callback dos inputs da Window GFLW para a lógica interna do código"""
@@ -43,11 +39,11 @@ def key_callback(camera, scene: Scene, window, key, scancode, action, mods):
 
     # E - Alterna para o modo de edição
     if key == glfw.KEY_E and action == glfw.PRESS:
-        scene.set_mode(MODES["viz"])
+        scene.set_mode(MODES["edit"])
         return
     # V - Alterna para o modo de visualização
     if key == glfw.KEY_V and action == glfw.PRESS:
-         scene.set_mode(MODES["edit"])
+         scene.set_mode(MODES["viz"])
          return
     # L - Alterna para o modo de luz
     if key == glfw.KEY_L and action == glfw.PRESS:
@@ -127,10 +123,12 @@ def main():
     torch1_light = Light((-31.3, 4.8, 21.7), (1.0, 0.5, 0.2), True)   # Luz da Tocha 1 (laranja)
     torch2_light = Light((-31.4, 4.7, 31.9), (1.0, 0.5, 0.2), True)   # Luz 2 Tocha 2 (laranja)
     star_light = Light((8.9, 22.4, -25.5), (1.0, 1.0, 0.0), False)   # Luz da estrela
+    bool_light = Light((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), True)
 
     scene.add_light(torch1_light)
     scene.add_light(torch2_light)
     scene.add_light(star_light)
+    scene.add_light(bool_light)
 
     # Carregando objetos do ambiente interno (sala do castelo)
     add_model(registry, scene, "castleroom")
@@ -147,6 +145,7 @@ def main():
     # Carregando objetos do ambiente externo
     add_model(registry, scene, "pipe", 1)
     add_model(registry, scene, "pipe", 2)
+    add_model(registry, scene, "pipe", 3) #especial
     add_model(registry, scene, "plataforma", 1)
     add_model(registry, scene, "plataforma", 2)
     estrela = add_model(registry, scene, "estrela", 0, True)
@@ -167,8 +166,8 @@ def main():
         c = add_model(registry, scene, "coin", i+1)
         coins.append(c)
 
-    boo_movable = add_model(registry, scene, "boo") #especial
-    pipe3 = add_model(registry, scene, "pipe", 3) #especial
+    # Boo com luz que está dentro da casa
+    boo_movable = add_model(registry, scene, "boo", 0, True) #especial
 
     # Upload final dos objetos na GPU e carregamento dos seus estados na cena
     registry.upload_to_gpu()
@@ -198,9 +197,20 @@ def main():
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if scene.is_at_polygonal_mode else GL_FILL)
 
-
+        # Roda moedas com o passar do tempo
         for coin in coins:
             coin.rotate(90.0 * scene.delta_time)
+
+        # Roda estrela com o passar do tempo
+        estrela.rotate(-90.0 *scene.delta_time)
+
+        # Movimento dos boss
+        for boo in boos:
+            orbit_around_xz(boo, 10.0, -25.0, 10.0, 1.5, scene.delta_time)
+
+        # Movimento do boo iluminado
+        orbit_arount_zy(boo_movable, 28.0, 9.0, 5.0, 1.5, scene.delta_time, -30.0)
+        scene.lights[3].set_position(boo_movable.position)
 
         camera.update(scene.delta_time)
         scene.draw(light_src_shader, lightable_shader, WIDTH / HEIGHT, registry)
