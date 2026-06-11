@@ -74,8 +74,6 @@ class Scene:
         glUniformMatrix4fv(glGetUniformLocation(light_src_program, "projection"), 1, GL_TRUE, proj_mat)
 
 
-        if self.skybox is not None:
-            self.skybox.draw(light_src_program)
 
         # Fontes de luz que brilham puramente
         for obj in self.light_objects:
@@ -104,18 +102,18 @@ class Scene:
         glUniform3f(glGetUniformLocation(lightable_program, "lights[0].position"), 5.0, 3.0, -5.0)
         glUniform3f(glGetUniformLocation(lightable_program, "lights[0].color"), 1.0, 0.5, 0.2) # Fogo/Laranja
         # Se a câmera está fora, a luz interna NÃO afeta o mundo de fora
-        status_luz_0 = 1.0
+        status_luz_0 = 0.0
         glUniform1f(glGetUniformLocation(lightable_program, "lights[0].is_on"), status_luz_0)
 
         # --- CONFIGURAÇÃO DA LUZ 1: Interna 2 (Torch 2) ---
         glUniform3f(glGetUniformLocation(lightable_program, "lights[1].position"), -5.0, 3.0, -5.0)
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[1].color"), 0.2, 0.6, 1.0) # Azulada
-        status_luz_1 = 1.0
+        glUniform3f(glGetUniformLocation(lightable_program, "lights[1].color"), 1.0, 0.5, 0.2) # Fogo/laranja
+        status_luz_1 = 0.0
         glUniform1f(glGetUniformLocation(lightable_program, "lights[1].is_on"), status_luz_1)
 
         # --- CONFIGURAÇÃO DA LUZ 2: Externa (Estrela/Sol) ---
         glUniform3f(glGetUniformLocation(lightable_program, "lights[2].position"), 0.0, 40.0, -50.0)
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[2].color"), 0.9, 0.9, 0.7) # Amarelada
+        glUniform3f(glGetUniformLocation(lightable_program, "lights[2].color"), 1.0, 1.0, 0.0) # Amarelada
         # Se a câmera está dentro, a luz externa NÃO entra e não afeta o lado de dentro
         #status_luz_2 = self.light_2_on if not is_camera_inside else 0.0
         status_luz_2 = 1.0
@@ -124,3 +122,6 @@ class Scene:
         # Desenha todos os objetos opacos normais da cena usando o shader com Phong
         for obj in self.objects:
             obj.draw(lightable_program)
+
+        if self.skybox is not None:
+            self.skybox.draw(lightable_program)

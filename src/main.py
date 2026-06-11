@@ -115,8 +115,8 @@ def main():
     # Carregando objetos do ambiente interno (sala do castelo)
     add_model(registry, scene, "castleroom")
     add_model(registry, scene, "chao")
-    add_model(registry, scene, "torch", 1)
-    add_model(registry, scene, "torch", 2)
+    add_model(registry, scene, "torch", 1, True)
+    add_model(registry, scene, "torch", 2, True)
     add_model(registry, scene, "quadro")
 
     # Carregando objetos que são personagens no ambiente interno
@@ -129,7 +129,7 @@ def main():
     add_model(registry, scene, "pipe", 2)
     add_model(registry, scene, "plataforma", 1)
     add_model(registry, scene, "plataforma", 2)
-    estrela = add_model(registry, scene, "estrela")
+    estrela = add_model(registry, scene, "estrela", 0, True)
 
     boos = []
     for i in range(4):
@@ -144,7 +144,7 @@ def main():
     # Objetos especiais que se movem pela cena
     coins = []
     for i in range(16):
-        c = add_model(registry, scene, "coin", i+1, True)
+        c = add_model(registry, scene, "coin", i+1)
         coins.append(c)
 
     boo_movable = add_model(registry, scene, "boo") #especial
