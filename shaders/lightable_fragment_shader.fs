@@ -22,7 +22,7 @@ struct Material {
 };
 uniform Material material;
 
-#define NR_LIGHTS 3
+#define NR_LIGHTS 4
 
 uniform Light lights[NR_LIGHTS]; // 0 e 1: Internas, 2: Externa
 

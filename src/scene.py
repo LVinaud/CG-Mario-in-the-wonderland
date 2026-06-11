@@ -88,7 +88,6 @@ class Scene:
         proj_mat = make_projection(self.camera.fov, aspect_ratio)
 
         # Reativação da lógica de detecção de ambiente para alimentar a classe Light
-        # (Ajuste os valores -15.0 e 15.0 se a sua castleroom for maior/menor)
         # Baseado nas transformações do castleroom:
         # Centro X: -17.45, Centro Z: 26.75, Escala aproximada: ~29.55
         min_x, max_x = -32.22, -2.68
