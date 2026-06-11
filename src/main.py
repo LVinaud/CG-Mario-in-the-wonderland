@@ -16,10 +16,6 @@ from src.skybox import Skybox
 from src.transforms import make_projection, make_view
 
 
-MODE_VIZ = "viz"
-MODE_LIGHT = "light"
-MODE_EDIT = "edit"
-
 def _scale_y(obj, factor):
     """Escala apenas o eixo Y. Função usada para escalar um dos canos externos da cena"""
     obj.scale[1] *= factor
@@ -32,7 +28,7 @@ def key_callback(camera, scene: Scene, window, key, scancode, action, mods):
     if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
         # Só persiste se estiver em modo edit
         # Alterações em viz não sobrescrevem o .json da configuração inicial da cena.
-        if scene.get_mode() == MODE_EDIT:
+        if scene.get_mode() == MODES["edit"]:
             scene.scene_editor.save_layout(camera)
         else:
             print("[modo viz] alterações não salvas (use modo edit para salvar)")
@@ -40,20 +36,33 @@ def key_callback(camera, scene: Scene, window, key, scancode, action, mods):
         return
 
     # P - Ativa o modo poligonal
-    if key == glfw.KEY_P and action == glfw.PRESS:
-        scene.is_at_polygonal_mode = not scene.is_at_polygonal_mode
+    #if key == glfw.KEY_P and action == glfw.PRESS:
+    #    scene.is_at_polygonal_mode = not scene.is_at_polygonal_mode
+    #    return
+
+    # E - Alterna para o modo de edição
+    if key == glfw.KEY_E and action == glfw.PRESS:
+        scene.set_mode(MODES["viz"])
+        return
+    # V - Alterna para o modo de visualização
+    if key == glfw.KEY_V and action == glfw.PRESS:
+         scene.set_mode(MODES["edit"])
+         return
+    # L - Alterna para o modo de luz
+    if key == glfw.KEY_L and action == glfw.PRESS:
+        scene.set_mode(MODES["light"])
         return
 
-    # T - alterna entre modo viz e modo edit
-    if key == glfw.KEY_T and action == glfw.PRESS:
-        if scene.get_mode() == MODE_VIZ:
-            scene.set_mode(MODE_EDIT)
-        else:
-            scene.set_mode(MODE_VIZ)
+    # Teclas de número ligam ou desligam uma luz da cena com o modo luz ativado
+    if scene.get_mode() == MODES["light"] and (key > glfw.KEY_0 and key <= glfw.KEY_9) and action == glfw.PRESS:
+        print("aquiii")
+        light_idx = key - glfw.KEY_0 - 1
+        if light_idx < len(scene.lights):
+           scene.lights[light_idx].toogle_on_of()
         return
 
     # TAB / SHIFT+TAB. Só funciona no modo edit
-    if key == glfw.KEY_TAB and action == glfw.PRESS and scene.get_mode() == "edit":
+    if key == glfw.KEY_TAB and action == glfw.PRESS and scene.get_mode() == MODES["edit"]:
         # Se shift, volta para o objeto anterior
         if mods & glfw.MOD_SHIFT:
             scene.scene_editor.set_previous_object_to_edit()
@@ -103,7 +112,7 @@ def main():
     # Criando os objetos singletons para construir a cena
     registry = MeshRegistry()
     camera = Camera(position=(0.0, 2.0, 3.0))
-    scene = Scene(camera, MODE_VIZ)
+    scene = Scene(camera, MODES["viz"])
 
     # Configurando o skybox e os limites da câmera
     skybox_h = registry.register(

@@ -141,7 +141,7 @@ class SceneEditor():
         self.get_editing_object().scale_by(1.0 / _S)
 
 
-    # Métodos para a edição de parametros de luz
+    # Métodos para a edição de parametros de luz em objetos individuais
     def increase_k_specular_obj(self):
         if self.get_editing_object().k_specular < 1.0:
             self.get_editing_object().k_specular += _K_LIGHT_PARAMS

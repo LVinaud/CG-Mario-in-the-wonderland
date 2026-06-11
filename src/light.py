@@ -6,7 +6,7 @@ class Light:
         self.color = list(color)
         self.is_internal = is_internal  # Define se a luz pertence ao ambiente interno ou externo
         self.is_on = 1.0                # Estado padrão: ligada (1.0) ou desligada (0.0)
-        self._is_on_input = False
+        self._is_on_input = True
 
     def set_position(self, position):
         self.position = list(position)

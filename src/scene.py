@@ -6,6 +6,10 @@ from src.transforms import make_view, make_projection
 from src.scene_editor import SceneEditor
 from src.input_manager import InputManager
 
+_CHANGE_GLOBAL_DIFFUSE = 0.1
+_CHANGE_GLOBAL_SPECULAR = 0.1
+_CHANGE_GLOBAL_AMBIENT =0.1
+
 class Scene:
     def __init__(self, camera, mode="viz", skybox=None):
         self.camera = camera
@@ -51,6 +55,24 @@ class Scene:
     def add_light(self, light):
         self.lights.append(light)
 
+
+    def decrease_diffuse_factor(self):
+        self.diffuse_factor -= _CHANGE_GLOBAL_DIFFUSE
+
+    def increase_diffuse_factor(self):
+        self.diffuse_factor += _CHANGE_GLOBAL_DIFFUSE
+
+    def decrease_specular_factor(self):
+        self.specular_factor -= _CHANGE_GLOBAL_SPECULAR
+
+    def increase_specular_factor(self):
+        self.specular_factor += _CHANGE_GLOBAL_SPECULAR
+
+    def decrease_ambient_light(self):
+        self.diffuse_factor -= _CHANGE_GLOBAL_AMBIENT
+
+    def increase_ambient_light(self):
+        self.diffuse_factor += _CHANGE_GLOBAL_AMBIENT
 
     def draw(self, light_src_shader, lightable_shader, aspect_ratio, registry):
         """

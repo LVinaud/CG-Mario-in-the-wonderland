@@ -4,7 +4,7 @@ Funções auxiliares para montar a cena
 
 import os
 
-from src.config import ASSETS_DIR, MODE_EDIT, MODE_LIGHT, MODE_VIZ
+from src.config import ASSETS_DIR, MODES
 
 import functools
 
@@ -87,83 +87,115 @@ def print_commands_list():
 def create_scene_binds(scene: Scene):
     # Comandos do modo de edição
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_G,
         scene.scene_editor.move_editing_obj_minus_z
     )
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_H,
         scene.scene_editor.move_editing_obj_plus_z
     )
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_R,
         scene.scene_editor.rotate_editing_obj_clockwise
     )
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_F,
         scene.scene_editor.rotate_editing_not_clockwise
     )
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_EQUAL,
         scene.scene_editor.scale_up_editing_obj
     )
     scene.input_mngr.on_hold(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_MINUS,
         scene.scene_editor.scale_down_editing_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_UP,
         scene.scene_editor.move_editing_obj_plus_y
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_DOWN,
         scene.scene_editor.move_editing_obj_minus_y
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_LEFT,
         scene.scene_editor.move_editing_obj_minus_x
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_RIGHT,
         scene.scene_editor.move_editing_obj_plus_x
     )
 
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_1,
         scene.scene_editor.decrease_k_diffuse_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_2,
         scene.scene_editor.increase_k_diffuse_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_3,
         scene.scene_editor.decrease_k_specular_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_4,
         scene.scene_editor.increase_k_specular_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_5,
         scene.scene_editor.decrease_shininess_obj
     )
     scene.input_mngr.on_press(
-        MODE_EDIT,
+        MODES["edit"],
         glfw.KEY_6,
         scene.scene_editor.increase_shininess_obj
+    )
+
+    # Configurações para mexer nas luzes
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_MINUS,
+        scene.decrease_ambient_light
+    )
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_EQUAL,
+        scene.increase_ambient_light
+    )
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_O,
+        scene.decrease_diffuse_factor
+    )
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_P,
+        scene.increase_diffuse_factor
+    )
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_K,
+        scene.decrease_specular_factor
+    )
+    scene.input_mngr.on_hold(
+        MODES["light"],
+        glfw.KEY_L,
+        scene.increase_specular_factor
     )

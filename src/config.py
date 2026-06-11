@@ -13,8 +13,12 @@ ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
 WIDTH, HEIGHT = 1280, 720
 TITLE = "Mario in the Wonderland"
 
+# Configurações globais da iluminação
+POINT_LIGHTS_NMR = 3
 
 # Modos de uso da cena final
-MODE_VIZ = "viz"
-MODE_LIGHT = "light"
-MODE_EDIT = "edit"
+MODES = {
+    "viz": 0,
+    "light": 1,
+    "edit": 2,
+}
