@@ -29,7 +29,7 @@ class Scene:
         # Incremento e decremento dos fatores de reflexão pelo teclado
         self.diffuse_factor = 1.0
         self.specular_factor = 1.0
-        self.ambient_factor = 1.0
+        self.ambient_factor = 0.6
 
         # Atributos para calculos com framerate
         self.delta_time = 0.0
@@ -57,22 +57,28 @@ class Scene:
 
 
     def decrease_diffuse_factor(self):
-        self.diffuse_factor -= _CHANGE_GLOBAL_DIFFUSE
+        if self.diffuse_factor > 0.0:
+            self.diffuse_factor -= _CHANGE_GLOBAL_DIFFUSE
 
     def increase_diffuse_factor(self):
-        self.diffuse_factor += _CHANGE_GLOBAL_DIFFUSE
+        if self.diffuse_factor < 1.0:
+            self.diffuse_factor += _CHANGE_GLOBAL_DIFFUSE
 
     def decrease_specular_factor(self):
-        self.specular_factor -= _CHANGE_GLOBAL_SPECULAR
+        if self.specular_factor > 0.0:
+            self.specular_factor -= _CHANGE_GLOBAL_SPECULAR
 
     def increase_specular_factor(self):
-        self.specular_factor += _CHANGE_GLOBAL_SPECULAR
+        if self.specular_factor < 1.0:
+            self.specular_factor += _CHANGE_GLOBAL_SPECULAR
 
     def decrease_ambient_light(self):
-        self.ambient_factor -= _CHANGE_GLOBAL_AMBIENT
+        if self.ambient_factor > 0.0:
+            self.ambient_factor -= _CHANGE_GLOBAL_AMBIENT
 
     def increase_ambient_light(self):
-        self.ambient_factor += _CHANGE_GLOBAL_AMBIENT
+        if self.ambient_factor < 1.0:
+            self.ambient_factor += _CHANGE_GLOBAL_AMBIENT
 
     def draw(self, light_src_shader, lightable_shader, aspect_ratio, registry):
         """
@@ -88,7 +94,7 @@ class Scene:
         proj_mat = make_projection(self.camera.fov, aspect_ratio)
 
         # Reativação da lógica de detecção de ambiente para alimentar a classe Light
-        # Baseado nas transformações do castleroom:
+        # Baseado nas transformações do castleroom
         # Centro X: -17.45, Centro Z: 26.75, Escala aproximada: ~29.55
         min_x, max_x = -32.22, -2.68
         min_z, max_z = 11.98, 41.52
