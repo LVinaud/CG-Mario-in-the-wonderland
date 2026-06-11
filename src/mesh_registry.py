@@ -32,22 +32,45 @@ class MeshRegistry:
     def __init__(self):
         self._vertices = []
         self._tex_coords = []
+        self._normals = []
         self._num_textures = 0
+        self.buffers = []
+
+        self.stride_vertices = 0
+        self.stride_normals = 0
+        self.stride_uvs = 0
 
     def register(self, obj_path, texture_paths):
         """Registra um modelo. Retorna um MeshHandle que o ObjetoGrafico vai guardar."""
         model = parse_obj(obj_path)
+        has_normals = len(model["normais"]) > 0
 
         # Salva objetos de acordo com a triangulação
         offset = len(self._vertices)
         for face in model["faces"]:
-            for vid in triangulate_face(face[0]):
+            v_indices = triangulate_face(face[0])
+            t_indices = triangulate_face(face[1])
+            n_indices = triangulate_face(face[2])
+
+            # Registra vértice por vértice de forma estritamente sincronizada
+            for i in range(len(v_indices)):
+                # Posição do Vértice
+                vid = v_indices[i]
                 self._vertices.append(model["vertices"][vid - 1])
-            for tid in triangulate_face(face[1]):
+
+                # Coordenada de Textura
+                tid = t_indices[i]
                 self._tex_coords.append(model["texture"][tid - 1])
+
+                # Vetor Normal (quando especificado pelo modelo)
+                if has_normals and i < len(n_indices) and n_indices[i] > 0:
+                    nid = n_indices[i]
+                    self._normals.append(model["normais"][nid - 1])
+                else:
+                    self._normals.append([0.0, 1.0, 0.0])
+
+        # Calculando e retornando o MeshHandle final
         count = len(self._vertices) - offset
-
-
         texture_ids = [self._load_texture(p) for p in texture_paths]
         return MeshHandle(vertex_offset=offset, vertex_count=count, texture_ids=texture_ids)
 
@@ -75,25 +98,60 @@ class MeshRegistry:
         self._num_textures += 1
         return tid
 
-    def upload_to_gpu(self, shader_program):
-        """Sobe vértices e UVs para a GPU. Chamar uma única vez, depois de registrar tudo."""
-        if not self._vertices:
-            return
 
-        buffers = glGenBuffers(2)
+    def upload_to_gpu(self):
+            """Envia os dados para a GPU e armazena os IDs dos VBO."""
+            if not self._vertices:
+                return
 
-        verts = np.zeros(len(self._vertices), [("position", np.float32, 3)])
-        verts["position"] = self._vertices
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[0])
-        glBufferData(GL_ARRAY_BUFFER, verts.nbytes, verts, GL_STATIC_DRAW)
-        loc = glGetAttribLocation(shader_program, "position")
-        glEnableVertexAttribArray(loc)
-        glVertexAttribPointer(loc, 3, GL_FLOAT, False, verts.strides[0], ctypes.c_void_p(0))
+            # criando os ids dos buffers na instância
+            self.buffers = glGenBuffers(3)
 
-        uvs = np.zeros(len(self._tex_coords), [("position", np.float32, 2)])
-        uvs["position"] = self._tex_coords
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[1])
-        glBufferData(GL_ARRAY_BUFFER, uvs.nbytes, uvs, GL_STATIC_DRAW)
-        loc = glGetAttribLocation(shader_program, "texture_coord")
-        glEnableVertexAttribArray(loc)
-        glVertexAttribPointer(loc, 2, GL_FLOAT, False, uvs.strides[0], ctypes.c_void_p(0))
+            # BUFFER DE VÉRTICES
+            verts = np.zeros(len(self._vertices), [("position", np.float32, 3)])
+            verts["position"] = self._vertices
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[0])
+            glBufferData(GL_ARRAY_BUFFER, verts.nbytes, verts, GL_STATIC_DRAW)
+            self.stride_vertices = verts.strides[0]
+
+            # UFFER DE TEXTURAS (UVs)
+            uvs = np.zeros(len(self._tex_coords), [("position", np.float32, 2)])
+            uvs["position"] = self._tex_coords
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[1])
+            glBufferData(GL_ARRAY_BUFFER, uvs.nbytes, uvs, GL_STATIC_DRAW)
+            self.stride_uvs = uvs.strides[0]
+
+            # BUFFER DE NORMAIS
+            norms = np.zeros(len(self._normals), [("position", np.float32, 3)])
+            norms["position"] = self._normals
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[2])
+            glBufferData(GL_ARRAY_BUFFER, norms.nbytes, norms, GL_STATIC_DRAW)
+            self.stride_normals = norms.strides[0]
+
+            # Limpa o bind global para segurança
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    def bind_buffers_to_shader(self, shader_program):
+        """Função que reconfigura os binds dos buffers para quando o shader é trocado"""
+
+        # Ativa e aponta as Posições
+        loc_pos = glGetAttribLocation(shader_program, "position")
+        if loc_pos != -1:
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[0])
+            glEnableVertexAttribArray(loc_pos)
+            glVertexAttribPointer(loc_pos, 3, GL_FLOAT, False, self.stride_vertices, ctypes.c_void_p(0))
+
+        # Ativa e aponta as Texturas
+        loc_uv = glGetAttribLocation(shader_program, "texture_coord")
+        if loc_uv != -1:
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[1])
+            glEnableVertexAttribArray(loc_uv)
+            glVertexAttribPointer(loc_uv, 2, GL_FLOAT, False, self.stride_uvs, ctypes.c_void_p(0))
+
+        # Ativa e aponta as Normais
+        loc_norm = glGetAttribLocation(shader_program, "normal")
+        if loc_norm != -1:
+            glBindBuffer(GL_ARRAY_BUFFER, self.buffers[2])
+            glEnableVertexAttribArray(loc_norm)
+            glVertexAttribPointer(loc_norm, 3, GL_FLOAT, False, self.stride_normals, ctypes.c_void_p(0))
