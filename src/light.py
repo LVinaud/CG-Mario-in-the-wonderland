@@ -6,6 +6,14 @@ class Light:
         self.color = list(color)
         self.is_internal = is_internal  # Define se a luz pertence ao ambiente interno ou externo
         self.is_on = 1.0                # Estado padrão: ligada (1.0) ou desligada (0.0)
+        self._is_on_input = False
+
+    def set_position(self, position):
+        self.position = list(position)
+
+    def toogle_on_of(self):
+        self._is_on_input = not self._is_on_input
+
 
     def send_to_shader(self, shader_program, index: int, is_camera_inside: bool):
         """
@@ -14,11 +22,11 @@ class Light:
         """
         # Define se a luz deve se manifestar baseado no isolamento de ambiente
         if self.is_internal:
-            # Luz interna só brilha se a câmera estiver dentro
-            active_status = self.is_on if is_camera_inside else 0.0
+            # Luz interna só brilha se a câmera estiver dentro e a luz estiver ligada
+            active_status = self.is_on if is_camera_inside and self._is_on_input else 0.0
         else:
-            # Luz externa só brilha se a câmera estiver fora
-            active_status = self.is_on if not is_camera_inside else 0.0
+            # Luz externa só brilha se a câmera estiver fora e a luz estiver ligada
+            active_status = self.is_on if not is_camera_inside and self._is_on_input else 0.0
 
         # Monta as strings de localização para o array do GLSL
         loc_pos = glGetUniformLocation(shader_program, f"lights[{index}].position")
