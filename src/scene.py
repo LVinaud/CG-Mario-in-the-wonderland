@@ -89,7 +89,15 @@ class Scene:
 
         # Reativação da lógica de detecção de ambiente para alimentar a classe Light
         # (Ajuste os valores -15.0 e 15.0 se a sua castleroom for maior/menor)
-        is_camera_inside = (-15.0 < self.camera.position[0] < 15.0) and (-15.0 < self.camera.position[2] < 15.0)
+        # Baseado nas transformações do castleroom:
+        # Centro X: -17.45, Centro Z: 26.75, Escala aproximada: ~29.55
+        min_x, max_x = -32.22, -2.68
+        min_z, max_z = 11.98, 41.52
+        min_y, max_y = -0.5, 15.50
+
+        is_camera_inside = (min_x <= self.camera.position[0] <= max_x) and \
+                            (min_y <= self.camera.position[1] <= max_y) and \
+                            (min_z <= self.camera.position[2] <= max_z)
 
         # Renderizando os objetos que emitem luz
         light_src_shader.use()
