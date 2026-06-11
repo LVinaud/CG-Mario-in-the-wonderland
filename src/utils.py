@@ -53,10 +53,8 @@ def add_model(registry, scene, obj_name, instance_idx=0, is_light_src=False):
     obj = ObjetoGrafico(mesh_handle=handle)
 
     # Adcionando o objeto na lista correta da cena
-    if not is_light_src:
-        scene.add_object(obj)
-    else:
-        scene.add_light_src(obj)
+    scene.add_object(obj, is_light_src)
+
 
     # Adcionando no editor com o nome correto
     if instance_idx > 0:

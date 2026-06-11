@@ -1,6 +1,7 @@
 """Scene: agrupa câmera, skybox e a lista de objetos. Quem chama draw é ela."""
 
 from OpenGL.GL import *
+from src.light import Light
 from src.transforms import make_view, make_projection
 from src.scene_editor import SceneEditor
 from src.input_manager import InputManager
@@ -11,19 +12,16 @@ class Scene:
         self.skybox = skybox
         self.objects = []
         self.light_objects = []
+        self.lights = []
 
-        self.scene_editor = SceneEditor()
 
         # Atributos para a gerência do estado da cena
         self.is_at_polygonal_mode = False
         self._mode = mode
 
+        # Handlers para inputs e alteração permantente da cena
+        self.scene_editor = SceneEditor()
         self.input_mngr = InputManager(self._mode)
-
-        # --- NOVOS ATRIBUTOS DE CONTROLE DE ILUMINAÇÃO ---
-        self.light_0_on = 1.0  # Lâmpada Interna 1 (Torch 1)
-        self.light_1_on = 1.0  # Lâmpada Interna 2 (Torch 2)
-        self.light_2_on = 1.0  # Lâmpada Externa (Estrela)
 
         # Incremento e decremento dos fatores de reflexão pelo teclado
         self.diffuse_factor = 1.0
@@ -43,12 +41,15 @@ class Scene:
         self.input_mngr.curr_mode = new_mode
 
 
-    def add_object(self, obj):
-        self.objects.append(obj)
+    def add_object(self, obj, is_light_src=False):
+        if not is_light_src:
+            self.objects.append(obj)
+        else:
+            self.light_objects.append(obj)
 
 
-    def add_light_src(self, obj):
-        self.light_objects.append(obj)
+    def add_light(self, light):
+        self.lights.append(light)
 
 
     def draw(self, light_src_shader, lightable_shader, aspect_ratio, registry):
@@ -64,8 +65,9 @@ class Scene:
         view_mat = make_view(self.camera.position, self.camera.front, self.camera.up)
         proj_mat = make_projection(self.camera.fov, aspect_ratio)
 
-        # Lógica de detecção de ambiente (Ajuste os limites X e Z para o tamanho da sua castleroom)
-        #is_camera_inside = (-15.0 < self.camera.position[0] < 15.0) and (-15.0 < self.camera.position[2] < 15.0)
+        # Reativação da lógica de detecção de ambiente para alimentar a classe Light
+        # (Ajuste os valores -15.0 e 15.0 se a sua castleroom for maior/menor)
+        is_camera_inside = (-15.0 < self.camera.position[0] < 15.0) and (-15.0 < self.camera.position[2] < 15.0)
 
         # Renderizando os objetos que emitem luz
         light_src_shader.use()
@@ -74,8 +76,7 @@ class Scene:
         glUniformMatrix4fv(glGetUniformLocation(light_src_program, "projection"), 1, GL_TRUE, proj_mat)
 
 
-
-        # Fontes de luz que brilham puramente
+        # Objetos fontes de luz que brilham puramente
         for obj in self.light_objects:
             obj.draw(light_src_program)
 
@@ -97,27 +98,9 @@ class Scene:
         glUniform1f(glGetUniformLocation(lightable_program, "global_diffuse_factor"), self.diffuse_factor)
         glUniform1f(glGetUniformLocation(lightable_program, "global_specular_factor"), self.specular_factor)
 
-        # --- CONFIGURAÇÃO DA LUZ 0: Interna 1 (Torch 1) ---
-        # Exemplo com posição e cor fixas da tocha, altere para bater com o seu cenário
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[0].position"), 5.0, 3.0, -5.0)
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[0].color"), 1.0, 0.5, 0.2) # Fogo/Laranja
-        # Se a câmera está fora, a luz interna NÃO afeta o mundo de fora
-        status_luz_0 = 0.0
-        glUniform1f(glGetUniformLocation(lightable_program, "lights[0].is_on"), status_luz_0)
-
-        # --- CONFIGURAÇÃO DA LUZ 1: Interna 2 (Torch 2) ---
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[1].position"), -5.0, 3.0, -5.0)
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[1].color"), 1.0, 0.5, 0.2) # Fogo/laranja
-        status_luz_1 = 0.0
-        glUniform1f(glGetUniformLocation(lightable_program, "lights[1].is_on"), status_luz_1)
-
-        # --- CONFIGURAÇÃO DA LUZ 2: Externa (Estrela/Sol) ---
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[2].position"), 0.0, 40.0, -50.0)
-        glUniform3f(glGetUniformLocation(lightable_program, "lights[2].color"), 1.0, 1.0, 0.0) # Amarelada
-        # Se a câmera está dentro, a luz externa NÃO entra e não afeta o lado de dentro
-        #status_luz_2 = self.light_2_on if not is_camera_inside else 0.0
-        status_luz_2 = 1.0
-        glUniform1f(glGetUniformLocation(lightable_program, "lights[2].is_on"), status_luz_2)
+        # Injeta as luzes no shader
+        for i, light in enumerate(self.lights):
+            light.send_to_shader(lightable_program, i, is_camera_inside)
 
         # Desenha todos os objetos opacos normais da cena usando o shader com Phong
         for obj in self.objects:

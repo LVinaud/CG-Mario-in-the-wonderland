@@ -7,6 +7,7 @@ from OpenGL.GL import *
 from src.config import  *
 from src.utils import add_model, print_commands_list, create_scene_binds
 from src.camera import Camera
+from src.light import Light
 from src.gl_setup import init_window, setup_gl_state, mouse_callback, framebuffer_size_callback
 from src.mesh_registry import MeshRegistry
 from src.scene import Scene
@@ -111,6 +112,15 @@ def main():
     )
     scene.skybox = Skybox(skybox_h, scale=1.0)
     camera.set_bounds((-65, 0.5, -65), (65, 65, 65))
+
+    # Carregando as luzes
+    torch1_light = Light((-31.3, 4.8, 21.7), (1.0, 0.5, 0.2), True)   # Luz da Tocha 1 (laranja)
+    torch2_light = Light((-31.4, 4.7, 31.9), (1.0, 0.5, 0.2), True)   # Luz 2 Tocha 2 (laranja)
+    star_light = Light((8.9, 22.4, -25.5), (1.0, 1.0, 0.0), False)   # Luz da estrela
+
+    scene.add_light(torch1_light)
+    scene.add_light(torch2_light)
+    scene.add_light(star_light)
 
     # Carregando objetos do ambiente interno (sala do castelo)
     add_model(registry, scene, "castleroom")
